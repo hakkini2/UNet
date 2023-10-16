@@ -1,4 +1,4 @@
-from . import config
+import config
 from torch.nn import ConvTranspose2d
 from torch.nn import Conv2d
 from torch.nn import MaxPool2d
@@ -121,7 +121,7 @@ class UNet(Module):
 		# pass the decoder features through the regression head to
 		# obtain the segmentation mask
 		map = self.head(decFeatures)
-		
+
 		# check to see if we are retaining the original output
 		# dimensions and if so, then resize the output to match them
 		if self.retainDim:

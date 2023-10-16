@@ -6,6 +6,11 @@ DATASET_PATH = '/l/ComputerVision/CLIP-and-SwinUNETR/Swin-UNETR-with-MSD/data/'
 IMAGE_DATASET_PATH = os.path.join(DATASET_PATH, '10_Decathlon/Task03_Liver/imagesTr/')
 MASK_DATASET_PATH = os.path.join(DATASET_PATH, '10_Decathlon/Task03_Liver/labelsTr/')
 
+# paths to txt files describing the dataset splits
+DATA_TXT_PATH_TRAIN = './dataset/dataset_list/PAOT_10_inner_train.txt'
+DATA_TXT_PATH_VAL = './dataset/dataset_list/PAOT_10_inner_val.txt'
+DATA_TXT_PATH_TEST = './dataset/dataset_list/PAOT_10_inner_test.txt'
+
 # determine the device to be used for training and evaluation
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -38,4 +43,3 @@ BASE_OUTPUT = 'output'
 # plot, and testing image paths
 MODEL_PATH = os.path.join(BASE_OUTPUT, "unet_task03_liver.pth")
 PLOT_PATH = os.path.sep.join([BASE_OUTPUT, "plot.png"])
-TEST_PATHS = os.path.sep.join([BASE_OUTPUT, "test_paths.txt"])
