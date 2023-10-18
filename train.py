@@ -26,28 +26,31 @@ def train(trainLoader, model):
     epoch_iterator = tqdm(
         trainLoader, desc="Training", dynamic_ncols=True
     )
-    i = 0
+
     for step, batch in enumerate(epoch_iterator):
-        if i > 0:
-            break
         img, lbl, name = batch["image"], batch["label"].float(), batch['name']
+
+        # see the fist image 
+        if step==0:
+            visualizeTransformedData(img[0][0],lbl[0][0],200)
+
         
-        img = img[0][0] 
-        lbl = lbl[0][0]
-        img.cpu()
-        lbl.cpu()
-        print(f"image shape: {img.shape}, label shape: {lbl.shape}")
-        # plot the slice [:, :, 80]
-        plt.figure("check", (12, 6))
-        plt.subplot(1, 2, 1)
-        plt.title("image")
-        plt.imshow(img[:, :, 80], cmap="gray")
-        plt.subplot(1, 2, 2)
-        plt.title("label")
-        plt.imshow(lbl[:, :, 80])
-        plt.savefig('visualize_transformed_data.png')
-        i+=1
+        
+        
     
+    
+
+def visualizeTransformedData(img, lbl, slice_id):
+    print(f"image shape: {img.shape}, label shape: {lbl.shape}")
+
+    plt.figure("check", (12, 6))
+    plt.subplot(1, 2, 1)
+    plt.title("image")
+    plt.imshow(img[:, :, slice_id], cmap="gray")
+    plt.subplot(1, 2, 2)
+    plt.title("label")
+    plt.imshow(lbl[:, :, slice_id])
+    plt.savefig('output/plots/visualize_transformed_data.png')
 
 def main():
     #parser = argparse.ArgumentParser()

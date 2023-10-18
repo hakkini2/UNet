@@ -15,7 +15,8 @@ from monai.transforms import (
 	ScaleIntensityRanged,
 	CropForegroundd,
 	ToTensord,
-	RandCropByPosNegLabeld
+	RandCropByPosNegLabeld,
+	SpatialPadd
 )
 
 
@@ -24,6 +25,14 @@ train_transforms =  Compose([
 			LoadImaged(keys=['image', 'label']),
 			#ensures the original data to construct "channel first" shape
 			EnsureChannelFirstd(keys=["image", "label"]),
+			# unifies the data orientation based on the affine matrix
+			Orientationd(keys=["image", "label"], axcodes="RAS"),
+			# adjusts the spacing by pixdim based on the affine matrix
+			Spacingd(
+                keys=["image","label"],
+                pixdim=(1.5, 1.5, 1.5),
+                mode=("bilinear", "nearest"),
+            ), 
 			# extracts intensity range [-57, 164] and scales to [0, 1].
             ScaleIntensityRanged(
                 keys=["image"],
@@ -33,27 +42,20 @@ train_transforms =  Compose([
                 b_max=1.0,
                 clip=True,
             ),
-			# removes all zero borders to focus on the valid body area of the images and labels
 			CropForegroundd(keys=["image", "label"], source_key="image"),
-			# unifies the data orientation based on the affine matrix
-			Orientationd(keys=["image", "label"], axcodes="RAS"),
-			# adjusts the spacing by pixdim=(1.5, 1.5, 2.) based on the affine matrix.
-			Spacingd(
-                keys=["image","label"],
-                pixdim=(1.5, 1.5, 1.5),
-                mode=("bilinear", "nearest"),
-            ), 
+            #SpatialPadd(keys=["image", "label"], spatial_size=(96,96,96), mode='constant'),
+			
 			# randomly crop patch samples from big image based on pos / neg ratio
-			# RandCropByPosNegLabeld(
-			# 	keys=["image", "label"],
-			# 	label_key="label",
-			# 	spatial_size=(96, 96, 96),
-			# 	pos=1,
-			# 	neg=1,
-			# 	num_samples=4,
-			# 	image_key="image",
-			# 	image_threshold=0,
-        	# ),
+			#RandCropByPosNegLabeld(
+			#	keys=["image", "label"],
+			#	label_key="label",
+			#	spatial_size=(96, 96, 96),
+			#	pos=2,
+			#	neg=1,
+			#	num_samples=4,
+			#	image_key="image",
+			#	image_threshold=0,
+        	#),
 		])
 
 val_transforms = Compose(
