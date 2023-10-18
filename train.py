@@ -38,8 +38,8 @@ def train(trainLoader, model, optimizer, lossFunc):
             if step==0:
                 visualizeTransformedData(img[0][0].to('cpu'),lbl[0][0].to('cpu'),200)
 
-            # !!! model still needs to be fixed to support our 3D data !!!!
-            predicted = model(img.squeeze(1))
+            print(img.shape)
+            predicted = model(img)
             loss = lossFunc(predicted, lbl)
 
         

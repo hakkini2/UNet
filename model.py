@@ -37,7 +37,7 @@ class UNet(Module):
 			self,
 			in_channels = 1,
 			out_channels = 1,
-			features=[64, 128, 256, 512],
+			features=[16, 32, 64],
 	): 
 		super(UNet, self).__init__()
 		self.ups = ModuleList()
