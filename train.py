@@ -17,22 +17,30 @@ import os
 import argparse
 
 
-def train(trainLoader, model):
-    model.train()
-    #initialize loss
-    loss_dice_ave = 0
+def train(trainLoader, model, optimizer, lossFunc):
+    print('[INFO] started training the network...')
 
-    # epoch iterator
-    epoch_iterator = tqdm(
-        trainLoader, desc="Training", dynamic_ncols=True
-    )
+    # loop through epochs
+    for epoch in tqdm(range(config.NUM_EPOCHS)):
+        model.train()   #model in training mode
 
-    for step, batch in enumerate(epoch_iterator):
-        img, lbl, name = batch["image"], batch["label"].float(), batch['name']
+        # initialize the total training and validation loss
+        totalTrainLoss = 0
+        totalTestLoss = 0
 
-        # see the fist image 
-        if step==0:
-            visualizeTransformedData(img[0][0],lbl[0][0],200)
+        # loop through the training set
+        for step, batch in enumerate(trainLoader):
+            img = batch["image"].to(config.DEVICE)
+            lbl = batch["label"].float().to(config.DEVICE)
+            name = batch['name']
+
+            # see the fist image 
+            if step==0:
+                visualizeTransformedData(img[0][0].to('cpu'),lbl[0][0].to('cpu'),200)
+
+            # !!! model still needs to be fixed to support our 3D data !!!!
+            predicted = model(img.squeeze(1))
+            loss = lossFunc(predicted, lbl)
 
         
         
@@ -41,6 +49,9 @@ def train(trainLoader, model):
     
 
 def visualizeTransformedData(img, lbl, slice_id):
+    '''
+    img and lbl should have only 3 channels, x,y,z
+    '''
     print(f"image shape: {img.shape}, label shape: {lbl.shape}")
 
     plt.figure("check", (12, 6))
@@ -52,16 +63,23 @@ def visualizeTransformedData(img, lbl, slice_id):
     plt.imshow(lbl[:, :, slice_id])
     plt.savefig('output/plots/visualize_transformed_data.png')
 
+
 def main():
     #parser = argparse.ArgumentParser()
     #args = parser.parse_args()
 
     # create the training loader
     trainLoader = getLoader('train', 'Task03_Liver')
-    model = UNet()
+    
+    #initialize model
+    model = UNet().to(config.DEVICE)
+
+    # initialize loss function and optimizer
+    lossFunc = BCEWithLogitsLoss()
+    optimizer = Adam(model.parameters(), lr=config.INIT_LR)
 
     # call training loop
-    train(trainLoader, model)
+    train(trainLoader, model, optimizer, lossFunc)
     
 
 if __name__ == "__main__":

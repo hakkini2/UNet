@@ -32,8 +32,9 @@ BATCH_SIZE = 1  #was 64
 NUM_WORKERS = 1 # os.cpu_count()
 
 # define the input image dimensions
-INPUT_IMAGE_WIDTH = 128 # 256?
-INPUT_IMAGE_HEIGHT = 128 # 256?
+INPUT_IMAGE_WIDTH = 256
+INPUT_IMAGE_HEIGHT = 256
+INPUT_IMAGE_DEPTH = 256 # ???
 
 # define threshold to filter weak predictions
 THRESHOLD = 0.5
