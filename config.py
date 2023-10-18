@@ -3,8 +3,8 @@ import os
 
 # path to dataset
 DATASET_PATH = '/l/ComputerVision/CLIP-and-SwinUNETR/Swin-UNETR-with-MSD/data/'
-IMAGE_DATASET_PATH = os.path.join(DATASET_PATH, '10_Decathlon/Task03_Liver/imagesTr/')
-MASK_DATASET_PATH = os.path.join(DATASET_PATH, '10_Decathlon/Task03_Liver/labelsTr/')
+IMAGE_DATASET_PATH = os.path.join(DATASET_PATH, '10_Decathlon/Task03_Liver/imagesTr/') # redundant?
+MASK_DATASET_PATH = os.path.join(DATASET_PATH, '10_Decathlon/Task03_Liver/labelsTr/') #redundant?
 
 # paths to txt files describing the dataset splits
 DATA_TXT_PATH_TRAIN = './dataset/dataset_list/PAOT_10_inner_train.txt'
@@ -27,7 +27,9 @@ NUM_LEVELS = 3
 # batch size
 INIT_LR = 0.001
 NUM_EPOCHS = 40
-BATCH_SIZE = 64
+BATCH_SIZE = 1  #was 64
+
+NUM_WORKERS = 1 # os.cpu_count()
 
 # define the input image dimensions
 INPUT_IMAGE_WIDTH = 128 # 256?
