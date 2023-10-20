@@ -43,7 +43,3 @@ THRESHOLD = 0.5
 # define the path to the base output directory
 BASE_OUTPUT = 'output'
 
-# define the path to the output serialized model, model training
-# plot, and testing image paths
-MODEL_PATH = os.path.join(BASE_OUTPUT, "unet_task03_liver.pth")
-PLOT_PATH = os.path.sep.join([BASE_OUTPUT, "plot.png"])
