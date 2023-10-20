@@ -4,7 +4,7 @@ from torch.nn import Conv3d, MaxPool3d, Sequential, BatchNorm3d, ReLU
 from torch.nn import Module
 from torch.nn import ModuleList
 from torchvision.transforms import CenterCrop
-import torchvision as tf
+import torchvision.transforms.functional as tf
 from torch.nn import functional as F
 import torch
 
@@ -14,13 +14,16 @@ class Block(Module):
 	the building unit of our encoder and decoder architecture
 	'''
 	def __init__(self, inChannels, outChannels):
-		super().__init__()
+		super(Block, self).__init__()
 		# store the convolution and RELU layers
 		self.conv = Sequential(
-			Conv3d(inChannels, outChannels, kernel_size=3, stride=1, padding=1),
-			ReLU(),
-			Conv3d(outChannels, outChannels, kernel_size=3, stride=1, padding=1)
-		)	# BatchNorm3d after conv3d's?
+			Conv3d(inChannels, outChannels, kernel_size=3, stride=1, padding=1, bias=False),
+			BatchNorm3d(outChannels),
+			ReLU(inplace=True),	#try save some memory with inplace
+			Conv3d(outChannels, outChannels, kernel_size=3, stride=1, padding=1, bias=False),
+			BatchNorm3d(outChannels),
+			ReLU(inplace=True)
+		)
 		
 	def forward(self, x):
 		# apply CONV => RELU => CONV block to the inputs and return it
@@ -37,7 +40,7 @@ class UNet(Module):
 			self,
 			in_channels = 1,
 			out_channels = 1,
-			features=[16, 32, 64],
+			features=[16, 32, 64],	# 64,128,256
 	): 
 		super(UNet, self).__init__()
 		self.ups = ModuleList()
@@ -80,9 +83,17 @@ class UNet(Module):
 		# Decoder part
 		skip_connections = skip_connections[::-1] # reverse order for encoder
 
+	
+
 		for idx in range(0, len(self.ups), 2):
 			x = self.ups[idx](x)
 			skip_connection = skip_connections[idx//2]
+
+			# dimensions must match for concat
+			# this has to be done if input is not divisible by 16
+			#if x.shape != skip_connection.shape:
+			#	x = tf.resize(x, size=skip_connection.shape[2:])
+
 			concat_skip = torch.cat((skip_connection, x), dim=1)
 			x = self.ups[idx+1](concat_skip)
 		

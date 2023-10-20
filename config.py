@@ -26,10 +26,11 @@ NUM_LEVELS = 3
 # initialize learning rate, number of epochs to train for, and the
 # batch size
 INIT_LR = 0.001
-NUM_EPOCHS = 40
-BATCH_SIZE = 1  #was 64
+NUM_EPOCHS = 2
+BATCH_SIZE = 1
+WEIGHT_DECAY = 1e-5
 
-NUM_WORKERS = 1 # os.cpu_count()
+NUM_WORKERS = 0 # os.cpu_count()
 
 # define the input image dimensions
 INPUT_IMAGE_WIDTH = 256
