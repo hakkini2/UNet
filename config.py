@@ -26,7 +26,7 @@ NUM_LEVELS = 3
 # initialize learning rate, number of epochs to train for, and the
 # batch size
 INIT_LR = 0.001
-NUM_EPOCHS = 2
+NUM_EPOCHS = 16
 BATCH_SIZE = 1
 WEIGHT_DECAY = 1e-5
 

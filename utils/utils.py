@@ -33,6 +33,9 @@ def visualizeTransformedData(img, lbl, slice_id):
 
 
 def visualizeSegmentation(img, lbl, name, predicted_label):
+    '''
+    Visualises a slice of one of the 4 crops of one 3D input volume.
+    '''
     with torch.no_grad():
 
         plt.figure(figsize=(12,4))

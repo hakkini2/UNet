@@ -31,8 +31,11 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 def train(trainLoader, valLoader, model, optimizer, lossFunc):
     print('[INFO] started training the network...')
 
-    train_losses = []
-    val_losses = []
+    # initialize lists and variables for recording losses
+    mean_train_losses = []
+    mean_val_losses = []
+    best_val_loss = 100.0
+    best_val_epoch = 0
 
     # loop through epochs
     epoch_loop = tqdm(range(config.NUM_EPOCHS), desc='Epoch')
@@ -41,9 +44,9 @@ def train(trainLoader, valLoader, model, optimizer, lossFunc):
 
         model.train()   #model in training mode
 
-        # initialize the total training and validation loss
-        totalTrainLoss = 0
-        totalValLoss = 0
+        # initialize the training and validation loss for the train and val loops
+        train_losses = []
+        val_losses = []
 
         # loop through the training set
         train_loop = tqdm(trainLoader, desc='Batch')
@@ -53,9 +56,9 @@ def train(trainLoader, valLoader, model, optimizer, lossFunc):
             lbl = batch["label"].float().to(config.DEVICE)
             name = batch['name']
             
-            # see the first image (crop) 
-            if step==0:
-                visualizeTransformedData(img[0][0].to('cpu'),lbl[0][0].to('cpu'),60)
+            # see the first image crop 
+            #if step==0:
+            #    visualizeTransformedData(img[0][0].to('cpu'),lbl[0][0].to('cpu'),60)
 
             # forward pass
             with torch.cuda.amp.autocast():
@@ -65,29 +68,24 @@ def train(trainLoader, valLoader, model, optimizer, lossFunc):
             #backpropagation
             optimizer.zero_grad()
             loss.backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 5) # try gradient clipping because of NaNs
             optimizer.step()
 
-            totalTrainLoss += loss.item()
+            train_losses.append(loss.item())
             
-            # Save loss every 10th step
-            if (step + 1) % 10 == 0:
-                avg_loss = totalTrainLoss / 10
-                print(f"\n Epoch {epoch + 1}, Train batch {step + 1}, Loss: {avg_loss:.4f}\n")
-                train_losses.append(avg_loss)
-                totalTrainLoss = 0.0
-
-            # get binary segmentation 
-            predicted_prob = torch.sigmoid(predicted[0][0])
+            # get binary segmentation for visualization
+            predicted_prob = torch.sigmoid(predicted[0][0]) # first of the 4 crops
             predicted_label = (predicted_prob > config.THRESHOLD).astype(np.uint8)
 
             visualizeSegmentation(img, lbl, name, predicted_label)
 
             torch.cuda.empty_cache()
         
-        # validation loop
+        # evaluation
         with torch.no_grad():
             model.eval()
             
+            # validation loop
             for step, batch in enumerate(valLoader):
                 img = batch["image"].to(config.DEVICE)
                 lbl = batch["label"].float().to(config.DEVICE)
@@ -95,20 +93,27 @@ def train(trainLoader, valLoader, model, optimizer, lossFunc):
 
                 predicted = model(img)
                 loss = lossFunc(predicted, lbl)
-                totalValLoss += loss.item()
+                val_losses.append(loss.item())
+            
+            # save best performing epoch
+            if np.mean(val_losses) < best_val_loss:
+                best_val_loss = np.mean(val_losses)
+                saveCheckpoint(model.state_dict(), 'unet_task03_liver.pth')
+                print(f'Model was saved. Current best val loss {best_val_loss}')
+                best_val_epoch = epoch
+            else:
+                print('Model was not saved.')
 
-                # Save loss every 10th step
-                if (step + 1) % 10 == 0:
-                    avg_loss = totalValLoss / 10
-                    print(f"\n Epoch {epoch + 1}, Val batch {step + 1}, Loss: {avg_loss:.4f}\n")
-                    val_losses.append(avg_loss)
-                    totalValLoss = 0.0
-    
-    plotLoss(train_losses, title= "Training Loss")
-    plotLoss(val_losses, fig_path='output/plots/validationloss.png', title='Validation Loss')
+        # Update train and val mean losses by epoch
+        print(f'Mean loss on epoch {epoch + 1}: {np.mean(train_losses)}')
+        mean_train_losses.append(np.mean(train_losses))
+        mean_val_losses.append(np.mean(val_losses))
 
-    # save model
-    saveCheckpoint(model, 'unet_task03_liver.pth')
+    # After training plot mean losses of epochs
+    plotLoss(mean_train_losses, title= "Training Loss")
+    plotLoss(mean_val_losses, fig_path='output/plots/validationloss.png', title='Validation Loss')
+
+
         
         
     
@@ -127,7 +132,7 @@ def main():
     model = UNet().to(config.DEVICE)
 
     # initialize loss function and optimizer
-    lossFunc = DiceCELoss()
+    lossFunc = DiceCELoss(sigmoid=True, squared_pred=True, reduction='mean')
     optimizer = AdamW(model.parameters(), lr=config.INIT_LR, weight_decay=config.WEIGHT_DECAY)
 
     # call training loop
