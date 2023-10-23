@@ -5,15 +5,15 @@ import sys
 sys.path.append('..')
 import config
 
-def plotTrainingLoss(losses):
+def plotLoss(losses, fig_path = 'output/plots/trainingloss.png', title='Loss'):
     # Plotting losses
     plt.figure(figsize=(10, 5))
-    plt.title("Training Loss")
-    plt.plot(losses, label="Train Loss")
+    plt.title(title)
+    plt.plot(losses, label="Loss")
     plt.xlabel("Batch")
     plt.ylabel("Loss")
     plt.legend()
-    plt.savefig('output/plots/trainingloss.png')
+    plt.savefig(fig_path)
 
 
 def visualizeTransformedData(img, lbl, slice_id):
@@ -36,7 +36,7 @@ def visualizeSegmentation(img, lbl, name, predicted_label):
     with torch.no_grad():
 
         plt.figure(figsize=(12,4))
-        plt.suptitle(name, fontsize=14)
+        plt.suptitle(name[0], fontsize=14)
         plt.subplot(1,3,1)
         plt.imshow(img[0][0][:,:,60].to('cpu'), cmap='gray')
         plt.axis('off')
@@ -52,7 +52,7 @@ def visualizeSegmentation(img, lbl, name, predicted_label):
 
 def saveCheckpoint(state, filename='unet_task03_liver.pth'):
     print('Saving model checkpoint..')
-    torch.save(state, filename)
+    torch.save(state, config.SAVED_MODEL_PATH + filename)
 
 def loadCheckpoint(checkpoint, model):
     print('Loading model checkpoint..')

@@ -22,61 +22,75 @@ from monai.transforms import (
 
 
 train_transforms =  Compose([
-			# loads the spleen CT images and labels from NIfTI format files
-			LoadImaged(keys=['image', 'label']),
-			#ensures the original data to construct "channel first" shape
-			EnsureChannelFirstd(keys=["image", "label"]),
-			# unifies the data orientation based on the affine matrix
-			Orientationd(keys=["image", "label"], axcodes="RAS"),
-			# adjusts the spacing by pixdim based on the affine matrix
-			Spacingd(
-                keys=["image","label"],
-                pixdim=(1.5, 1.5, 1.5),
-                mode=("bilinear", "nearest"),
-            ), 
-			# extracts intensity range [-57, 164] and scales to [0, 1].
-            ScaleIntensityRanged(
-                keys=["image"],
-                a_min=-175,
-                a_max=250,
-                b_min=0.0,
-                b_max=1.0,
-                clip=True,
-            ),
-			CropForegroundd(keys=["image", "label"], source_key="image"),
-			
-            SpatialPadd(keys=["image", "label"], spatial_size=(96,96,96), mode='constant'),
-			
-			# randomly crop patch samples from big image based on pos / neg ratio
-			RandCropByPosNegLabeld(
-				keys=["image", "label"],
-				label_key="label",
-				spatial_size=(96, 96, 96),
-				pos=2,
-				neg=1,
-				num_samples=4,
-				image_key="image",
-				image_threshold=0,
-        	),
-		])
+	# loads the spleen CT images and labels from NIfTI format files
+	LoadImaged(keys=['image', 'label']),
+	#ensures the original data to construct "channel first" shape
+	EnsureChannelFirstd(keys=["image", "label"]),
+	# unifies the data orientation based on the affine matrix
+	Orientationd(keys=["image", "label"], axcodes="RAS"),
+	# adjusts the spacing by pixdim based on the affine matrix
+	Spacingd(
+		keys=["image","label"],
+		pixdim=(1.5, 1.5, 1.5),
+		mode=("bilinear", "nearest"),
+	), 
+	# extracts intensity range [-57, 164] and scales to [0, 1].
+	ScaleIntensityRanged(
+		keys=["image"],
+		a_min=-175,
+		a_max=250,
+		b_min=0.0,
+		b_max=1.0,
+		clip=True,
+	),
+	CropForegroundd(keys=["image", "label"], source_key="image"),
+	
+	SpatialPadd(keys=["image", "label"], spatial_size=(96,96,96), mode='constant'),
+	
+	# randomly crop patch samples from big image based on pos / neg ratio
+	# creates four patches from one image
+	RandCropByPosNegLabeld(
+		keys=["image", "label"],
+		label_key="label",
+		spatial_size=(96, 96, 96),
+		pos=2,
+		neg=1,
+		num_samples=4,
+		image_key="image",
+		image_threshold=0,
+	),
+])
 
-val_transforms = Compose(
-    [
-        LoadImaged(keys=["image", "label"]),
-        EnsureChannelFirstd(keys=["image", "label"]),
-        ScaleIntensityRanged(
-            keys=["image"],
-            a_min=-175,
-            a_max=250,
-            b_min=0.0,
-            b_max=1.0,
-            clip=True,
-        ),
-        CropForegroundd(keys=["image", "label"], source_key="image"),
-        Orientationd(keys=["image", "label"], axcodes="RAS"),
-        Spacingd(keys=["image", "label"], pixdim=(1.5, 1.5, 1.5), mode=("bilinear", "nearest")),
-    ]
-)
+val_transforms = Compose([
+	LoadImaged(keys=["image", "label"]),
+	EnsureChannelFirstd(keys=["image", "label"]),
+	Orientationd(keys=["image", "label"], axcodes="RAS"),
+	Spacingd(
+		keys=["image", "label"],
+		pixdim=(1.5, 1.5, 1.5),
+		mode=("bilinear", "nearest")
+	),
+	ScaleIntensityRanged(
+		keys=["image"],
+		a_min=-175,
+		a_max=250,
+		b_min=0.0,
+		b_max=1.0,
+		clip=True,
+	),
+	CropForegroundd(keys=["image", "label"], source_key="image"),
+	SpatialPadd(keys=["image", "label"], spatial_size=(96,96,96), mode='constant'),
+	RandCropByPosNegLabeld(
+		keys=["image", "label"],
+		label_key="label",
+		spatial_size=(96, 96, 96),
+		pos=2,
+		neg=1,
+		num_samples=4,
+		image_key="image",
+		image_threshold=0,
+	),
+])
 
 
 
@@ -119,7 +133,7 @@ def getTrainPaths(organ = 'Task03_Liver'):
 	for line in open(config.DATA_TXT_PATH_TRAIN):
 		task = line.strip().split()[0].split('/')[1]    # e.g. 'Task03_Liver'
 		if task == organ:
-			name = line.strip().split()[1].split('.')[0]
+			name = line.strip().split()[1].split('.')[0].split('/')[-1]
 			train_name.append(name)
 			train_img.append(config.DATASET_PATH + line.strip().split()[0])
 			train_lbl.append(config.DATASET_PATH + line.strip().split()[1])
@@ -142,7 +156,7 @@ def getValPaths(organ = 'Task03_Liver'):
 	for line in open(config.DATA_TXT_PATH_VAL):
 		task = line.strip().split()[0].split('/')[1]    # e.g. 'Task03_Liver'
 		if task == organ:
-			name = line.strip().split()[1].split('.')[0]
+			name = line.strip().split()[1].split('.')[0].split('/')[-1]
 			val_name.append(name)
 			val_img.append(config.DATASET_PATH + line.strip().split()[0])
 			val_lbl.append(config.DATASET_PATH + line.strip().split()[1])
@@ -165,7 +179,7 @@ def getTestPaths(organ = 'Task03_Liver'):
 	for line in open(config.DATA_TXT_PATH_TEST):
 		task = line.strip().split()[0].split('/')[1]    # e.g. 'Task03_Liver'
 		if task == organ:
-			name = line.strip().split()[1].split('.')[0]
+			name = line.strip().split()[1].split('.')[0].split('/')[-1]
 			test_name.append(name)
 			test_img.append(config.DATASET_PATH + line.strip().split()[0])
 			test_lbl.append(config.DATASET_PATH + line.strip().split()[1])

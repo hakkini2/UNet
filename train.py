@@ -19,17 +19,20 @@ import os
 import argparse
 
 from utils.utils import (
-    plotTrainingLoss,
+    plotLoss,
     visualizeTransformedData,
-    visualizeSegmentation
+    visualizeSegmentation,
+    saveCheckpoint,
+    loadCheckpoint
 )
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
-def train(trainLoader, model, optimizer, lossFunc):
+def train(trainLoader, valLoader, model, optimizer, lossFunc):
     print('[INFO] started training the network...')
 
-    losses = []
+    train_losses = []
+    val_losses = []
 
     # loop through epochs
     epoch_loop = tqdm(range(config.NUM_EPOCHS), desc='Epoch')
@@ -46,12 +49,11 @@ def train(trainLoader, model, optimizer, lossFunc):
         train_loop = tqdm(trainLoader, desc='Batch')
         for step, batch in enumerate(train_loop):
             train_loop.set_description(f"Batch {step+1}")
-
             img = batch["image"].to(config.DEVICE)
             lbl = batch["label"].float().to(config.DEVICE)
             name = batch['name']
             
-            # see the fist image 
+            # see the first image (crop) 
             if step==0:
                 visualizeTransformedData(img[0][0].to('cpu'),lbl[0][0].to('cpu'),60)
 
@@ -70,8 +72,8 @@ def train(trainLoader, model, optimizer, lossFunc):
             # Save loss every 10th step
             if (step + 1) % 10 == 0:
                 avg_loss = totalTrainLoss / 10
-                print(f"\n Epoch {epoch + 1}, Batch {step + 1}, Loss: {avg_loss:.4f}\n")
-                losses.append(avg_loss)
+                print(f"\n Epoch {epoch + 1}, Train batch {step + 1}, Loss: {avg_loss:.4f}\n")
+                train_losses.append(avg_loss)
                 totalTrainLoss = 0.0
 
             # get binary segmentation 
@@ -83,10 +85,30 @@ def train(trainLoader, model, optimizer, lossFunc):
             torch.cuda.empty_cache()
         
         # validation loop
+        with torch.no_grad():
+            model.eval()
+            
+            for step, batch in enumerate(valLoader):
+                img = batch["image"].to(config.DEVICE)
+                lbl = batch["label"].float().to(config.DEVICE)
+                name = batch['name']
+
+                predicted = model(img)
+                loss = lossFunc(predicted, lbl)
+                totalValLoss += loss.item()
+
+                # Save loss every 10th step
+                if (step + 1) % 10 == 0:
+                    avg_loss = totalValLoss / 10
+                    print(f"\n Epoch {epoch + 1}, Val batch {step + 1}, Loss: {avg_loss:.4f}\n")
+                    val_losses.append(avg_loss)
+                    totalValLoss = 0.0
     
-    plotTrainingLoss(losses)
+    plotLoss(train_losses, title= "Training Loss")
+    plotLoss(val_losses, fig_path='output/plots/validationloss.png', title='Validation Loss')
 
-
+    # save model
+    saveCheckpoint(model, 'unet_task03_liver.pth')
         
         
     
@@ -97,8 +119,9 @@ def main():
     #parser = argparse.ArgumentParser()
     #args = parser.parse_args()
 
-    # create the training loader
+    # create loaders
     trainLoader = getLoader('train', 'Task03_Liver')
+    valLoader = getLoader('val', 'Task03_Liver')
     
     #initialize model
     model = UNet().to(config.DEVICE)
@@ -108,7 +131,7 @@ def main():
     optimizer = AdamW(model.parameters(), lr=config.INIT_LR, weight_decay=config.WEIGHT_DECAY)
 
     # call training loop
-    train(trainLoader, model, optimizer, lossFunc)
+    train(trainLoader, valLoader, model, optimizer, lossFunc)
 
     #x = torch.randn((3, 1, 256, 256, 256))
     #x = x.to(config.DEVICE)

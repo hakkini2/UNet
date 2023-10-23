@@ -43,3 +43,4 @@ THRESHOLD = 0.5
 # define the path to the base output directory
 BASE_OUTPUT = 'output'
 
+SAVED_MODEL_PATH = 'output/pretrained/'
