@@ -102,7 +102,7 @@ def getLoader(phase, organ):
 	if phase == 'train':
 		data_dicts_train = getTrainPaths(organ)
 		train_dataset = Dataset(data=data_dicts_train, transform=train_transforms)
-		train_loader = DataLoader(train_dataset, batch_size=config.BATCH_SIZE,
+		train_loader = DataLoader(train_dataset, batch_size=config.BATCH_SIZE, shuffle=True,
         num_workers=config.NUM_WORKERS)
 
 		return train_loader
@@ -110,7 +110,7 @@ def getLoader(phase, organ):
 	if phase == 'val':
 		data_dicts_val = getValPaths(organ)
 		val_dataset = Dataset(data=data_dicts_val, transform=val_transforms)
-		val_loader = DataLoader(val_dataset, batch_size=config.BATCH_SIZE,
+		val_loader = DataLoader(val_dataset, batch_size=config.BATCH_SIZE, shuffle=True,
         num_workers=config.NUM_WORKERS)
 
 		return val_loader
@@ -118,7 +118,7 @@ def getLoader(phase, organ):
 	if phase == 'test':
 		data_dicts_test = getTestPaths(organ)
 		test_dataset = Dataset(data=data_dicts_test, transform=val_transforms)
-		test_loader = DataLoader(test_dataset, batch_size=config.BATCH_SIZE,
+		test_loader = DataLoader(test_dataset, batch_size=config.BATCH_SIZE, shuffle=True,
         num_workers=config.NUM_WORKERS)
 
 		return test_loader
