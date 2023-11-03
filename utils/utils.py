@@ -56,7 +56,3 @@ def visualizeSegmentation(img, lbl, name, predicted_label):
 def saveCheckpoint(state, filename='unet_task03_liver.pth'):
     print('Saving model checkpoint..')
     torch.save(state, config.SAVED_MODEL_PATH + filename)
-
-def loadCheckpoint(checkpoint, model):
-    print('Loading model checkpoint..')
-    model.load_state_dict(checkpoint['state_dict'])

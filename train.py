@@ -1,7 +1,7 @@
 from dataset.dataset import (
     getLoader
 )
-from model import UNet
+from unet3d import UNet3D
 import config
 from torch.nn import BCEWithLogitsLoss
 from torch.optim import AdamW
@@ -23,7 +23,6 @@ from utils.utils import (
     visualizeTransformedData,
     visualizeSegmentation,
     saveCheckpoint,
-    loadCheckpoint
 )
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "1"
@@ -98,7 +97,13 @@ def train(trainLoader, valLoader, model, optimizer, lossFunc):
             # save best performing epoch
             if np.mean(val_losses) < best_val_loss:
                 best_val_loss = np.mean(val_losses)
-                saveCheckpoint(model.state_dict(), 'unet_task03_liver.pth')
+                state = {
+                    'epoch': epoch,
+                    'model_state_dict': model.state_dict(),
+                    'optimizer_state_dict': optimizer.state_dict(),
+                    'loss': best_val_loss,
+                }
+                saveCheckpoint(state, 'unet_task03_liver.pth')
                 print(f'Model was saved. Current best val loss {best_val_loss}')
                 best_val_epoch = epoch
             else:
@@ -129,7 +134,7 @@ def main():
     valLoader = getLoader('val', 'Task03_Liver')
     
     #initialize model
-    model = UNet().to(config.DEVICE)
+    model = UNet3D().to(config.DEVICE)
 
     # initialize loss function and optimizer
     lossFunc = DiceCELoss(sigmoid=True, squared_pred=True, reduction='mean')

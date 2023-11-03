@@ -59,6 +59,7 @@ train_transforms =  Compose([
 		image_key="image",
 		image_threshold=0,
 	),
+	ToTensord(keys=["image", "label"]),
 ])
 
 val_transforms = Compose([
@@ -90,6 +91,7 @@ val_transforms = Compose([
 		image_key="image",
 		image_threshold=0,
 	),
+	ToTensord(keys=["image", "label"]),
 ])
 
 
