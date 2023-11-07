@@ -1,5 +1,5 @@
-from dataset.dataset import (
-	getLoader
+from dataset import (
+	getLoader3d
 )
 from unet3d import UNet3D
 import config
@@ -22,7 +22,7 @@ from torchmetrics.functional.classification import dice
 
 def main():
 	# create loaders
-	testLoader = getLoader('test', 'Task03_Liver')
+	testLoader = getLoader3d('test', 'Task03_Liver')
 	
 	# get trained model from checkpoint
 	model = UNet3D().to(config.DEVICE)

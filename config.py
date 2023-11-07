@@ -2,11 +2,10 @@ import torch
 import os
 
 # path to dataset
-DATASET_PATH = '/l/ComputerVision/CLIP-and-SwinUNETR/Swin-UNETR-with-MSD/data/'
-IMAGE_DATASET_PATH = os.path.join(DATASET_PATH, '10_Decathlon/Task03_Liver/imagesTr/') # redundant?
-MASK_DATASET_PATH = os.path.join(DATASET_PATH, '10_Decathlon/Task03_Liver/labelsTr/') #redundant?
+DATASET_PATH_3D = '/l/ComputerVision/CLIP-and-SwinUNETR/Swin-UNETR-with-MSD/data/'
+DATASET_PATH_2D = './content/'
 
-# paths to txt files describing the dataset splits
+# paths to txt files describing the 3D dataset splits
 DATA_TXT_PATH_TRAIN = './dataset/dataset_list/PAOT_10_inner_train.txt'
 DATA_TXT_PATH_VAL = './dataset/dataset_list/PAOT_10_inner_val.txt'
 DATA_TXT_PATH_TEST = './dataset/dataset_list/PAOT_10_inner_test.txt'

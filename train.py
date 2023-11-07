@@ -1,5 +1,5 @@
-from dataset.dataset import (
-    getLoader
+from dataset import (
+    getLoader3d
 )
 from unet3d import UNet3D
 import config
@@ -115,8 +115,8 @@ def train(trainLoader, valLoader, model, optimizer, lossFunc):
         mean_val_losses.append(np.mean(val_losses))
 
     # After training plot mean losses of epochs
-    plotLoss(mean_train_losses, title= "Training Loss")
-    plotLoss(mean_val_losses, fig_path='output/plots/validationloss.png', title='Validation Loss')
+    plotLoss(mean_train_losses, title= "Mean Training Loss")
+    plotLoss(mean_val_losses, fig_path='output/plots/validationloss.png', title='Mean Validation Loss')
 
 
         
@@ -130,8 +130,8 @@ def main():
     #args = parser.parse_args()
 
     # create loaders
-    trainLoader = getLoader('train', 'Task03_Liver')
-    valLoader = getLoader('val', 'Task03_Liver')
+    trainLoader = getLoader3d('train', 'Task03_Liver')
+    valLoader = getLoader3d('val', 'Task03_Liver')
     
     #initialize model
     model = UNet3D().to(config.DEVICE)
@@ -142,12 +142,6 @@ def main():
 
     # call training loop
     train(trainLoader, valLoader, model, optimizer, lossFunc)
-
-    #x = torch.randn((3, 1, 256, 256, 256))
-    #x = x.to(config.DEVICE)
-    #preds = model(x)
-    #print(preds.shape)
-    #print(x.shape)
     
 
 if __name__ == "__main__":
