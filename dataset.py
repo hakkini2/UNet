@@ -236,11 +236,13 @@ def getDataPaths2d(split, organ = 'Task03_Liver'):
 	lbl_dir = os.path.join(config.DATASET_PATH_2D, f"{split}_2d_masks")
 
 	img_fnames = []
+	names = []
 	for f in os.listdir(img_dir):
 		task = f.split('_')[0]
-
+		
 		if task == organ and os.path.isfile(os.path.join(img_dir, f)):
 			img_fnames.append(os.path.join(img_dir, f))
+			names.append(f.split('.')[0])
 
 	lbl_fnames = []
 	for f in os.listdir(lbl_dir):
@@ -248,5 +250,6 @@ def getDataPaths2d(split, organ = 'Task03_Liver'):
 		if task == organ and os.path.isfile(os.path.join(lbl_dir, f)):
 			lbl_fnames.append(os.path.join(lbl_dir, f))
 
-	data = [{"image": img_fname, "label": lbl_fname} for img_fname, lbl_fname in zip(img_fnames, lbl_fnames)]
+	data = [{"image": img_fname, "label": lbl_fname, "name": name} for img_fname, lbl_fname, name in zip(img_fnames, lbl_fnames, names)]
+	
 	return data
