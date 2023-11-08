@@ -16,7 +16,8 @@ from monai.transforms import (
 	ToTensord,
 	RandCropByPosNegLabeld,
 	SpatialPadd,
-	Resized
+	Resized,
+	RandRotate90d
 )
 import config
 
@@ -72,6 +73,19 @@ train_transforms_2d = Compose([
 		b_max=1.0,
 		clip=True,
 	),
+	CropForegroundd(keys=["image", "label"], source_key="image"),
+	SpatialPadd(keys=["image", "label"], spatial_size=(256,256), mode='constant'),
+	RandCropByPosNegLabeld(
+		keys=["image", "label"],
+		label_key="label",
+		spatial_size=(256, 256),
+		pos=2,
+		neg=1,
+		num_samples=2,
+		image_key="image",
+		image_threshold=0,
+	),
+	RandRotate90d(keys=["image", "label"], prob=0.5, spatial_axes=[0, 1]),
 	ToTensord(keys=["image", "label"]),
 ])
 
@@ -252,4 +266,6 @@ def getDataPaths2d(split, organ = 'Task03_Liver'):
 
 	data = [{"image": img_fname, "label": lbl_fname, "name": name} for img_fname, lbl_fname, name in zip(img_fnames, lbl_fnames, names)]
 	
+	print(f'{split} len {format(len(data))}')
+
 	return data

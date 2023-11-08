@@ -1,6 +1,12 @@
 import torch
 import os
 
+# Image format: are the input images 3D volumes or 2D slices
+IMG_FORMAT = '2d'   # '2d' or '3d'
+
+# Save model predictions to a plot by every Nth batch in training
+PLOT_SAVING_INTERVAL = 200
+
 # path to dataset
 DATASET_PATH_3D = '/l/ComputerVision/CLIP-and-SwinUNETR/Swin-UNETR-with-MSD/data/'
 DATASET_PATH_2D = './content/'
@@ -26,7 +32,7 @@ NUM_LEVELS = 3
 # batch size
 INIT_LR = 0.001
 NUM_EPOCHS = 16
-BATCH_SIZE = 1
+BATCH_SIZE = 2
 WEIGHT_DECAY = 1e-5
 
 NUM_WORKERS = 0 # os.cpu_count()
