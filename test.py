@@ -34,8 +34,8 @@ def test(testLoader, model, img_format):
 		test_loop.set_description(f"Iteration {step+1}")
 
 		# get image and ground truth label
-		img = batch["image"].to(config.DEVICE)
-		lbl = batch["label"].float().to(config.DEVICE)
+		img = batch['image'].to(config.DEVICE)
+		lbl = batch['label'].float().to(config.DEVICE)
 		name = batch['name']
 
 		# get prediction
@@ -53,7 +53,7 @@ def main():
 	# create loader
 	if img_format == '3d':
 		testLoader = getLoader3d('test', 'Task03_Liver')
-	else:
+	else:	#2d
 		testLoader = getLoader2d('test', 'Task03_Liver')
 	
 	# get trained model from checkpoint

@@ -34,7 +34,7 @@ train_transforms_3d =  Compose([
 		pixdim=(1.5, 1.5, 1.5),
 		mode=("bilinear", "nearest"),
 	), 
-	# extracts intensity range [-57, 164] and scales to [0, 1].
+	# extracts intensity range and scales to [0, 1].
 	ScaleIntensityRanged(
 		keys=["image"],
 		a_min=-175,
@@ -81,7 +81,7 @@ train_transforms_2d = Compose([
 		spatial_size=(256, 256),
 		pos=2,
 		neg=1,
-		num_samples=2,
+		num_samples=4,
 		image_key="image",
 		image_threshold=0,
 	),

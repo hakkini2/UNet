@@ -18,7 +18,9 @@ import numpy as np
 import torch
 import time
 import os
+import sys
 import argparse
+import math
 
 from utils.utils import (
     plotLoss,
@@ -30,7 +32,7 @@ from utils.utils import (
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
-def train(trainLoader, valLoader, model, optimizer, lossFunc, img_format = '3d'):
+def train(trainLoader, valLoader, model, optimizer, lossFunc, img_format):
     print('[INFO] started training the network...')
 
     torch.autograd.set_detect_anomaly(True) # debugging
@@ -66,13 +68,25 @@ def train(trainLoader, valLoader, model, optimizer, lossFunc, img_format = '3d')
             #    visualizeTransformedData3d(img[0][0].to('cpu'),lbl[0][0].to('cpu'),60)
 
             # forward pass
-            with torch.cuda.amp.autocast():
+            if img_format == '3d':
+                with torch.cuda.amp.autocast():
+                    predicted = model(img)
+                    loss = lossFunc(predicted, lbl)
+            else:
                 predicted = model(img)
                 loss = lossFunc(predicted, lbl)
 
             #backpropagation
             optimizer.zero_grad()
             loss.backward()
+
+            # look for nan gradients
+            for p in model.parameters():
+                grad = p.grad.norm()
+                if math.isnan(grad):
+                    print('NAN gradient found')
+                    sys.exit(0)
+
             torch.nn.utils.clip_grad_norm_(model.parameters(), 5) # try gradient clipping because of NaNs
             optimizer.step()
 
