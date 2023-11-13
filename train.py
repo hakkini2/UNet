@@ -131,7 +131,7 @@ def train(trainLoader, valLoader, model, optimizer, lossFunc, img_format):
                     'optimizer_state_dict': optimizer.state_dict(),
                     'loss': best_val_loss,
                 }
-                saveCheckpoint(state, f'unet_task03_liver_{img_format}.pth')
+                saveCheckpoint(state, f'unet_{config.ORGAN.lower()}_{img_format}.pth')
                 print(f'Model was saved. Current best val loss {best_val_loss}')
                 best_val_epoch = epoch
             else:
@@ -160,8 +160,8 @@ def main():
 
     if image_format == '3d':
         # create loaders
-        trainLoader = getLoader3d('train', 'Task03_Liver')
-        valLoader = getLoader3d('val', 'Task03_Liver')
+        trainLoader = getLoader3d('train', config.ORGAN)
+        valLoader = getLoader3d('val', config.ORGAN)
         
         #initialize model
         model = UNet3D().to(config.DEVICE)
@@ -176,8 +176,8 @@ def main():
 
     if image_format == '2d':
         # create loaders
-        trainLoader = getLoader2d('train', 'Task03_Liver')
-        valLoader = getLoader2d('val', 'Task03_Liver')
+        trainLoader = getLoader2d('train', config.ORGAN)
+        valLoader = getLoader2d('val', config.ORGAN)
         
         #initialize model
         model = UNet2D().to(config.DEVICE)

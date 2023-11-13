@@ -108,6 +108,6 @@ def visualizeSegmentation2d(img, lbl, name, predicted_label):
         plt.tight_layout()
         plt.savefig(f'output/plots/segmentation_result_{config.IMG_FORMAT}.png')
 
-def saveCheckpoint(state, filename='unet_task03_liver.pth'):
+def saveCheckpoint(state, filename):
     print('Saving model checkpoint..')
     torch.save(state, config.SAVED_MODEL_PATH + filename)

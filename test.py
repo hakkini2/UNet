@@ -98,16 +98,16 @@ def main():
 
 	# create loader
 	if img_format == '3d':
-		testLoader = getLoader3d('test', 'Task03_Liver')
+		testLoader = getLoader3d('test', config.ORGAN)
 	else:	#2d
-		testLoader = getLoader2d('test', 'Task03_Liver')
+		testLoader = getLoader2d('test', config.ORGAN)
 	
 	# get trained model from checkpoint
 	if img_format == '3d':
 		model = UNet3D().to(config.DEVICE)
 	else:
 		model = UNet2D().to(config.DEVICE)
-	checkpoint_name = f'unet_task03_liver_{img_format}.pth'
+	checkpoint_name = f'unet_{config.ORGAN.lower()}_{img_format}.pth'
 	checkpoint = torch.load(os.path.join(config.SAVED_MODEL_PATH, checkpoint_name))
 	model.load_state_dict(checkpoint['model_state_dict'])
 

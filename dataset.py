@@ -171,7 +171,7 @@ def getLoader2d(split, organ):
 
 # 3D data paths
 
-def getTrainPaths3d(organ = 'Task03_Liver'):
+def getTrainPaths3d(organ):
 	train_img = []
 	train_lbl = []
 	train_name = []
@@ -194,7 +194,7 @@ def getTrainPaths3d(organ = 'Task03_Liver'):
 	return data_dicts_train
 
 
-def getValPaths3d(organ = 'Task03_Liver'):
+def getValPaths3d(organ):
 	val_img = []
 	val_lbl = []
 	val_name = []
@@ -217,7 +217,7 @@ def getValPaths3d(organ = 'Task03_Liver'):
 	return data_dicts_val
 
 
-def getTestPaths3d(organ = 'Task03_Liver'):
+def getTestPaths3d(organ):
 	test_img = []
 	test_lbl = []
 	test_name = []
@@ -242,7 +242,7 @@ def getTestPaths3d(organ = 'Task03_Liver'):
 
 
 # 2D data paths
-def getDataPaths2d(split, organ = 'Task03_Liver'):
+def getDataPaths2d(split, organ):
 	# reformat organ for 2D case
 	organ = organ.split('_')[1].lower()
 
