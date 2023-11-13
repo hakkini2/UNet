@@ -12,6 +12,7 @@ from monai.losses import DiceCELoss
 from sklearn.model_selection import train_test_split
 from pathlib import Path
 from imutils import paths
+import shutil
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 import numpy as np
@@ -25,9 +26,13 @@ from utils.utils import calculate_dice_score
 
 
 def test(testLoader, model, img_format):
-	# create directory for saving test plots
-	test_plots_path = config.SAVED_PLOTS_PATH + 'test_plots/'
-	Path(test_plots_path).mkdir(parents=True, exist_ok=True)
+	# create directories for saving test plots
+	all_plots_path = config.TEST_OUTPUT_PATH + 'all/'
+	best_plots_path = config.TEST_OUTPUT_PATH + 'top_best/'
+	worst_plots_path = config.TEST_OUTPUT_PATH + 'top_worst/'
+	Path(all_plots_path).mkdir(parents=True, exist_ok=True)
+	Path(best_plots_path).mkdir(parents=True, exist_ok=True)
+	Path(worst_plots_path).mkdir(parents=True, exist_ok=True)
 	
 	# set model to evaluation mode
 	model.eval()
@@ -51,7 +56,7 @@ def test(testLoader, model, img_format):
 		predicted_label = (predicted_prob > config.THRESHOLD).astype(np.uint8)
 		predicted_label = torch.Tensor(predicted_label)
 
-		# convert to bool and squeeze extra dimension
+		# squeeze extra dimension and convert masks to bool 
 		img = img.squeeze()
 		lbl = lbl.squeeze().to(bool)
 		predicted_label = predicted_label.squeeze().to(bool)
@@ -72,23 +77,35 @@ def test(testLoader, model, img_format):
 
 		dices.append((name[0], dice_pytorch))
 	
-		#visualize
-		if step % config.PLOT_SAVING_INTERVAL == 0:
-			with torch.no_grad():
-				plt.figure(figsize=(12,4))
-				plt.suptitle(f'{name[0]}, dice: {dice_utils.item():1.4f}', fontsize=14)
-				plt.subplot(1,3,1)
-				plt.imshow(img[0][:,:].to('cpu'), cmap='gray')
-				plt.axis('off')
-				plt.subplot(1,3,2)
-				plt.imshow(lbl[0][:,:].to('cpu'), cmap='copper')
-				plt.axis('off')
-				plt.subplot(1,3,3)
-				plt.imshow(predicted_label[0][:,:], cmap='copper')
-				plt.axis('off')
-				plt.tight_layout()
-				plt.savefig(f'output/plots/test_plots/{name[0]}_{config.IMG_FORMAT}.png')
+		#visualize and save plots
+		with torch.no_grad():
+			plt.figure(figsize=(12,4))
+			plt.suptitle(f'{name[0]}, dice: {dice_utils.item():1.4f}', fontsize=14)
+			plt.subplot(1,3,1)
+			plt.imshow(img[0][:,:].to('cpu'), cmap='gray')
+			plt.axis('off')
+			plt.subplot(1,3,2)
+			plt.imshow(lbl[0][:,:].to('cpu'), cmap='copper')
+			plt.axis('off')
+			plt.subplot(1,3,3)
+			plt.imshow(predicted_label[0][:,:], cmap='copper')
+			plt.axis('off')
+			plt.tight_layout()
+			plt.savefig(f'{all_plots_path}{name[0]}_{config.IMG_FORMAT}.png')
+			plt.close()
 	
+	# sort the dices by the dice score (highest first)
+	dices.sort(key=lambda x: x[1].item(), reverse=True)
+
+	# top config.N_TEST_SAMPLES best and worst segmentation results
+	top_best, top_worst = dices[: config.N_TEST_SAMPLES], dices[-config.N_TEST_SAMPLES :]
+
+	# copy the corresponding samples from all/ to top_best/ and top_worst/
+	for fname, _ in top_best:
+		shutil.copy(f'{all_plots_path}{fname}_{config.IMG_FORMAT}.png', f'{best_plots_path}{fname}_{config.IMG_FORMAT}.png')
+	for fname, _ in top_worst:
+		shutil.copy(f'{all_plots_path}{fname}_{config.IMG_FORMAT}.png', f'{worst_plots_path}{fname}_{config.IMG_FORMAT}.png')
+
 	return dices
 
 
@@ -118,6 +135,13 @@ def main():
 	dices_data = [dice_item[1].item() for dice_item in dices]
 	average_dice = sum(dices_data)/len(dices_data)
 	print(f'\nAverage test dice score on {config.ORGAN}: {average_dice:1.4f}')
+
+	# plot a histogram of the dice scores
+	plt.hist(dices_data, bins=20)
+	plt.title(f'{config.ORGAN} test dice histogram, avg: {average_dice:1.4f}')
+	plt.xlabel('Dice')
+	plt.savefig(f'{config.TEST_OUTPUT_PATH}{config.ORGAN.lower()}_test_dice_histogram.png')
+	plt.close()
 	
 
 	

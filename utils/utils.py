@@ -52,6 +52,7 @@ def plotLoss(losses, fig_path = 'output/plots/trainingloss.png', title='Loss'):
     plt.ylabel("Loss")
     plt.legend()
     plt.savefig(fig_path)
+    plt.close()
 
 
 def visualizeTransformedData3d(img, lbl, slice_id):
@@ -68,6 +69,7 @@ def visualizeTransformedData3d(img, lbl, slice_id):
     plt.title("label")
     plt.imshow(lbl[:, :, slice_id])
     plt.savefig('output/plots/visualize_transformed_data.png')
+    plt.close()
 
 
 def visualizeSegmentation3d(img, lbl, name, predicted_label):
@@ -89,6 +91,7 @@ def visualizeSegmentation3d(img, lbl, name, predicted_label):
         plt.axis('off')
         plt.tight_layout()
         plt.savefig(f'output/plots/segmentation_result_{config.IMG_FORMAT}.png')
+        plt.close()
 
 
 def visualizeSegmentation2d(img, lbl, name, predicted_label):
@@ -107,6 +110,7 @@ def visualizeSegmentation2d(img, lbl, name, predicted_label):
         plt.axis('off')
         plt.tight_layout()
         plt.savefig(f'output/plots/segmentation_result_{config.IMG_FORMAT}.png')
+        plt.close()
 
 def saveCheckpoint(state, filename):
     print('Saving model checkpoint..')

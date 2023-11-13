@@ -4,8 +4,8 @@ import os
 # Image format: are the input images 3D volumes or 2D slices
 IMG_FORMAT = '2d'   # '2d' or '3d'
 
-# Save model predictions to a plot by every Nth batch in training
-PLOT_SAVING_INTERVAL = 200
+PLOT_SAVING_INTERVAL = 200  # Save model predictions to a plot by every Nth batch in training
+N_TEST_SAMPLES = 10   # How many top/worst test plots are saved
 
 #organ to train/test on
 # NOTE: THE FORMAT TaskXX_Organ
@@ -22,6 +22,7 @@ DATA_TXT_PATH_TEST = './dataset/dataset_list/PAOT_10_inner_test.txt'
 
 # define the path to the base output directory
 BASE_OUTPUT = 'output'
+TEST_OUTPUT_PATH = 'output/plots/test_plots/'
 SAVED_PLOTS_PATH = 'output/plots/'
 SAVED_MODEL_PATH = 'output/pretrained/'
 
