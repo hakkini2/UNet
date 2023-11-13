@@ -150,7 +150,7 @@ def getLoader3d(split, organ):
 	if split == 'test':
 		data_dicts_test = getTestPaths3d(organ)
 		test_dataset = Dataset(data=data_dicts_test, transform=val_transforms_3d)
-		test_loader = DataLoader(test_dataset, batch_size=config.BATCH_SIZE, shuffle=True,
+		test_loader = DataLoader(test_dataset, batch_size=config.BATCH_SIZE, shuffle=False,
 						   num_workers=config.NUM_WORKERS)
 
 		return test_loader

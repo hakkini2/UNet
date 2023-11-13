@@ -10,7 +10,7 @@ from torch.optim import AdamW
 from monai.data import DataLoader
 from monai.losses import DiceCELoss
 from sklearn.model_selection import train_test_split
-
+from pathlib import Path
 from imutils import paths
 from tqdm import tqdm
 import matplotlib.pyplot as plt
@@ -25,6 +25,11 @@ from utils.utils import calculate_dice_score
 
 
 def test(testLoader, model, img_format):
+	# create directory for saving test plots
+	test_plots_path = config.SAVED_PLOTS_PATH + 'test_plots/'
+	Path(test_plots_path).mkdir(parents=True, exist_ok=True)
+	
+	# set model to evaluation mode
 	model.eval()
 
 	#test model for test images
@@ -40,10 +45,51 @@ def test(testLoader, model, img_format):
 
 		# get prediction
 		pred = model(img)
+		
+		# get binary segmentation
+		predicted_prob = torch.sigmoid(pred)
+		predicted_label = (predicted_prob > config.THRESHOLD).astype(np.uint8)
+		predicted_label = torch.Tensor(predicted_label)
+
+		# convert to bool and squeeze extra dimension
+		img = img.squeeze()
+		lbl = lbl.squeeze().to(bool)
+		predicted_label = predicted_label.squeeze().to(bool)
 
 		# evaluate with dice score
-		dice_pytorch = dice(pred.cpu(), lbl.cpu(), ignore_index=0)
-		dice_utils = calculate_dice_score(pred.cpu(), lbl.cpu())
+		dice_pytorch = dice(predicted_label.cpu(), lbl.cpu(), ignore_index=0)
+		dice_utils, _, _ = calculate_dice_score(predicted_label.cpu(), lbl.cpu())
+
+		print('dice pytorch: ', dice_pytorch)
+		print('dice utils: ', dice_utils)
+
+
+		# check that different dice scores match
+		if not np.isclose(dice_pytorch, dice_utils.item()):
+			print("DIFFERENT DICES \n")
+			print(f"i: {step}, name: {name[0]}")
+			break
+
+		dices.append((name[0], dice_pytorch))
+	
+		#visualize
+		if step % config.PLOT_SAVING_INTERVAL == 0:
+			with torch.no_grad():
+				plt.figure(figsize=(12,4))
+				plt.suptitle(f'{name[0]}, dice: {dice_utils.item():1.4f}', fontsize=14)
+				plt.subplot(1,3,1)
+				plt.imshow(img[0][:,:].to('cpu'), cmap='gray')
+				plt.axis('off')
+				plt.subplot(1,3,2)
+				plt.imshow(lbl[0][:,:].to('cpu'), cmap='copper')
+				plt.axis('off')
+				plt.subplot(1,3,3)
+				plt.imshow(predicted_label[0][:,:], cmap='copper')
+				plt.axis('off')
+				plt.tight_layout()
+				plt.savefig(f'output/plots/test_plots/{name[0]}_{config.IMG_FORMAT}.png')
+	
+	return dices
 
 
 def main():
@@ -65,8 +111,13 @@ def main():
 	checkpoint = torch.load(os.path.join(config.SAVED_MODEL_PATH, checkpoint_name))
 	model.load_state_dict(checkpoint['model_state_dict'])
 
-	# run test loop for test images
-	test(testLoader, model, img_format)
+	# run test loop for test images and get dice scores
+	dices = test(testLoader, model, img_format)
+
+	# get average dice on test set
+	dices_data = [dice_item[1].item() for dice_item in dices]
+	average_dice = sum(dices_data)/len(dices_data)
+	print(f'\nAverage test dice score on {config.ORGAN}: {average_dice:1.4f}')
 	
 
 	

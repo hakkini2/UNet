@@ -7,6 +7,10 @@ IMG_FORMAT = '2d'   # '2d' or '3d'
 # Save model predictions to a plot by every Nth batch in training
 PLOT_SAVING_INTERVAL = 200
 
+#organ to train/test on
+# NOTE: THE FORMAT TaskXX_Organ
+ORGAN = 'Task03_Liver'
+
 # path to dataset
 DATASET_PATH_3D = '/l/ComputerVision/CLIP-and-SwinUNETR/Swin-UNETR-with-MSD/data/'
 DATASET_PATH_2D = './content/'
@@ -15,6 +19,11 @@ DATASET_PATH_2D = './content/'
 DATA_TXT_PATH_TRAIN = './dataset/dataset_list/PAOT_10_inner_train.txt'
 DATA_TXT_PATH_VAL = './dataset/dataset_list/PAOT_10_inner_val.txt'
 DATA_TXT_PATH_TEST = './dataset/dataset_list/PAOT_10_inner_test.txt'
+
+# define the path to the base output directory
+BASE_OUTPUT = 'output'
+SAVED_PLOTS_PATH = 'output/plots/'
+SAVED_MODEL_PATH = 'output/pretrained/'
 
 # determine the device to be used for training and evaluation
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
@@ -45,7 +54,3 @@ INPUT_IMAGE_DEPTH = 256 # ???
 # define threshold to filter weak predictions
 THRESHOLD = 0.5
 
-# define the path to the base output directory
-BASE_OUTPUT = 'output'
-
-SAVED_MODEL_PATH = 'output/pretrained/'
