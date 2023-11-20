@@ -94,8 +94,8 @@ def main():
                         )
     parser.add_argument('--data_txt_path',
                         default = './dataset/dataset_list/PAOT_10_inner',
-                        help = 'path to txt file describing the train/val/test spits'
-                        )
+                        help = 'Beginning pattern of path to txt file describing the train/val/test spits'
+                        ) 
     args = parser.parse_args()
 
     # get data dicts of train, val and test splits

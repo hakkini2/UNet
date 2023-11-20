@@ -12,6 +12,7 @@ from monai.losses import DiceCELoss
 from sklearn.model_selection import train_test_split
 from pathlib import Path
 from imutils import paths
+import nibabel as nib
 import shutil
 from tqdm import tqdm
 import matplotlib.pyplot as plt
@@ -47,7 +48,7 @@ def test(testLoader, model, img_format):
 		img = batch['image'].to(config.DEVICE)
 		lbl = batch['label'].float().to(config.DEVICE)
 		name = batch['name']
-
+		print(img.shape)
 		# get prediction
 		pred = model(img)
 		
@@ -76,19 +77,22 @@ def test(testLoader, model, img_format):
 			break
 
 		dices.append((name[0], dice_pytorch))
-	
+
+		print('img shape: ',img.shape)
+		print('lbl shape: ',lbl.shape)
+		print('pred shape: ',predicted_label.shape)
 		#visualize and save plots
 		with torch.no_grad():
 			plt.figure(figsize=(12,4))
 			plt.suptitle(f'{name[0]}, dice: {dice_utils.item():1.4f}', fontsize=14)
 			plt.subplot(1,3,1)
-			plt.imshow(img[0][:,:].to('cpu'), cmap='gray')
+			plt.imshow(img.to('cpu'), cmap='gray')
 			plt.axis('off')
 			plt.subplot(1,3,2)
-			plt.imshow(lbl[0][:,:].to('cpu'), cmap='copper')
+			plt.imshow(lbl.to('cpu'), cmap='copper')
 			plt.axis('off')
 			plt.subplot(1,3,3)
-			plt.imshow(predicted_label[0][:,:], cmap='copper')
+			plt.imshow(predicted_label, cmap='copper')
 			plt.axis('off')
 			plt.tight_layout()
 			plt.savefig(f'{all_plots_path}{name[0]}_{config.IMG_FORMAT}.png')

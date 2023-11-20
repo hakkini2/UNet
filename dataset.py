@@ -161,11 +161,12 @@ def getLoader2d(split, organ):
 
 	if split=='train':
 		dataset = Dataset(data=data_dicts, transform=train_transforms_2d)
+		loader = DataLoader(dataset=dataset, batch_size=config.BATCH_SIZE, shuffle=True,
+				num_workers=config.NUM_WORKERS)
 	else:
 		dataset = Dataset(data=data_dicts, transform=val_transforms_2d)
-
-	loader = DataLoader(dataset=dataset, batch_size=config.BATCH_SIZE, shuffle=True,
-					num_workers=config.NUM_WORKERS)
+		loader = DataLoader(dataset=dataset, batch_size=1, shuffle=True,
+				num_workers=config.NUM_WORKERS)
 
 	return loader
 
