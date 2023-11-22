@@ -78,9 +78,6 @@ def test(testLoader, model, img_format):
 
 		dices.append((name[0], dice_pytorch))
 
-		print('img shape: ',img.shape)
-		print('lbl shape: ',lbl.shape)
-		print('pred shape: ',predicted_label.shape)
 		#visualize and save plots
 		with torch.no_grad():
 			plt.figure(figsize=(12,4))
