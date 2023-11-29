@@ -42,7 +42,10 @@ NUM_LEVELS = 3
 # batch size
 INIT_LR = 0.0005
 NUM_EPOCHS = 16
-BATCH_SIZE = 2
+if IMG_FORMAT == '2d':
+    BATCH_SIZE = 2
+else:
+    BATCH_SIZE = 1  # issue with different sized tensors inside a batch
 WEIGHT_DECAY = 1e-5
 
 NUM_WORKERS = 0 # os.cpu_count()

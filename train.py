@@ -117,7 +117,7 @@ def train(trainLoader, valLoader, model, optimizer, lossFunc, img_format):
                 img = batch["image"].to(config.DEVICE)
                 lbl = batch["label"].float().to(config.DEVICE)
                 name = batch['name']
-
+                
                 predicted = model(img)
                 loss = lossFunc(predicted, lbl)
                 val_losses.append(loss.item())
