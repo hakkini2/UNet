@@ -1,4 +1,4 @@
-from dataset import (
+from dataset.dataset import (
     getLoader3d,
     getLoader2d
 )
