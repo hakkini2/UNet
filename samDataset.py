@@ -3,6 +3,8 @@ import nibabel as nib
 import os
 import sys
 import math
+from scipy.ndimage import center_of_mass
+
 from monai.data import DataLoader, Dataset, CacheDataset
 
 from monai.transforms import (
@@ -23,7 +25,7 @@ from monai.transforms import (
 import config
 
 
-val_transforms_2d = Compose([
+transforms_sam = Compose([
 	LoadImaged(keys=["image", "label"], image_only=False),
 	EnsureChannelFirstd(keys=["image", "label"]),
 	ScaleIntensityRanged(
@@ -37,8 +39,32 @@ val_transforms_2d = Compose([
 	ToTensord(keys=["image", "label"]),
 ])
 
+def get_point_prompt(ground_truth_map):
+	'''
+	Creates a point prompt for sam based on the centre of mass 
+		from the ground truth labels 
+	Returns: a tuple of the (x,y)-coordinates of the prompt
+	'''
+	cm = center_of_mass(ground_truth_map)
+	cm = (round(cm[0]), round(cm[1]))	# round to closest int to get indices
 
-def getTwoDataSplits(organ, split='train'):
+	print('point prompt: ', cm)
+	
+	return cm
+
+
+
+def get_loader(organ, split='train'):
+	# take the first data split for SAMs maasks
+	data_dicts, _ = get_two_data_splits(organ=organ, split=split)
+
+	dataset = Dataset(data_dicts, transforms_sam)
+	loader = DataLoader(dataset, batch_size=config.BATCH_SIZE_SAM, num_workers=config.NUM_WORKERS, shuffle=False)
+
+	return loader
+
+
+def get_two_data_splits(organ, split='train'):
 	'''
 	Split the training images to half and half in order to 
 			produce pseudo labels with SAM.
@@ -68,7 +94,6 @@ def getTwoDataSplits(organ, split='train'):
 	data = [{"image": img_fname, "label": lbl_fname, "name": name} for img_fname, lbl_fname, name in zip(img_fnames, lbl_fnames, names)]
 	
 	len_half = math.floor(len(data)/2)
-	len_other_half= len(data) - len_half
 
 	# if data len is odd, datasplit2 has 1 more img than datasplit1
 	datasplit1 = data[:len_half]
@@ -78,5 +103,5 @@ def getTwoDataSplits(organ, split='train'):
 	return datasplit1, datasplit2
 
 
-data1, data2 = getTwoDataSplits(organ = 'Task03_Liver', split= 'train')
+loader = get_loader(organ = 'Task03_Liver', split= 'train')
 

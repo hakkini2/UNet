@@ -20,6 +20,9 @@ DATA_TXT_PATH_TRAIN = './dataset/dataset_list/PAOT_10_inner_train.txt'
 DATA_TXT_PATH_VAL = './dataset/dataset_list/PAOT_10_inner_val.txt'
 DATA_TXT_PATH_TEST = './dataset/dataset_list/PAOT_10_inner_test.txt'
 
+# path to saved SAM model checkpoint
+SAM_CHECKPOINT_PATH = './content/model_checkpoints/sam_vit_h_4b8939.pth'
+
 # define the path to the base output directory
 BASE_OUTPUT = 'output'
 TEST_OUTPUT_PATH = 'output/plots/test_plots/'
@@ -46,6 +49,7 @@ if IMG_FORMAT == '2d':
     BATCH_SIZE = 2
 else:
     BATCH_SIZE = 1  # issue with different sized tensors inside a batch
+BATCH_SIZE_SAM = 1 # batch size for SAM
 WEIGHT_DECAY = 1e-5
 
 NUM_WORKERS = 0 # os.cpu_count()

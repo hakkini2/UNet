@@ -2,8 +2,8 @@ from dataset import (
 	getLoader3d,
 	getLoader2d
 )
-from model.unet3d import UNet3D
-from model.unet2d import UNet2D
+from unet3d import UNet3D
+from unet2d import UNet2D
 from torch.nn import BCEWithLogitsLoss
 from torch.optim import AdamW
 from monai.data import DataLoader
