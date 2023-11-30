@@ -2,8 +2,8 @@ from dataset import (
 	getLoader3d,
 	getLoader2d
 )
-from unet3d import UNet3D
-from unet2d import UNet2D
+from model.unet3d import UNet3D
+from model.unet2d import UNet2D
 import config
 from torch.nn import BCEWithLogitsLoss
 from torch.optim import AdamW
@@ -139,9 +139,9 @@ def main():
 
 	# plot a histogram of the dice scores
 	plt.hist(dices_data, bins=20)
-	plt.title(f'{config.ORGAN} test dice histogram, avg: {average_dice:1.4f}')
+	plt.title(f'{config.ORGAN} test dice histogram, {config.IMG_FORMAT}, avg: {average_dice:1.4f}')
 	plt.xlabel('Dice')
-	plt.savefig(f'{config.TEST_OUTPUT_PATH}{config.ORGAN.lower()}_test_dice_histogram.png')
+	plt.savefig(f'{config.TEST_OUTPUT_PATH}{config.ORGAN.lower()}_test_dice_histogram_{config.IMG_FORMAT}.png')
 	plt.close()
 	
 

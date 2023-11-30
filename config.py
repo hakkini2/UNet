@@ -9,7 +9,7 @@ N_TEST_SAMPLES = 10   # How many top/worst test plots are saved
 
 #organ to train/test on
 # NOTE: THE FORMAT TaskXX_Organ
-ORGAN = 'Task10_Colon' #'Task03_Liver'
+ORGAN = 'Task03_Liver' #'Task03_Liver'
 
 # path to dataset
 DATASET_PATH_3D = '/l/ComputerVision/CLIP-and-SwinUNETR/Swin-UNETR-with-MSD/data/'
