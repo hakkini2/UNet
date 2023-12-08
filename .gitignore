@@ -1,4 +1,5 @@
 __pycache__/
 content/
-output/plots/test_plots/
-output/pretrained/unet_task03_liver_3d.pth
+output/unet/plots/test_plots/
+output/unet/pretrained/unet_task03_liver_3d.pth
+output/sam/

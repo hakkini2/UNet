@@ -3,6 +3,7 @@ import nibabel as nib
 import os
 import sys
 import math
+import numpy as np
 from scipy.ndimage import center_of_mass
 
 from monai.data import DataLoader, Dataset, CacheDataset
@@ -48,9 +49,43 @@ def get_point_prompt(ground_truth_map):
 	cm = center_of_mass(ground_truth_map)
 	cm = (round(cm[0]), round(cm[1]))	# round to closest int to get indices
 
-	print('point prompt: ', cm)
+	#print('point prompt: ', cm)
 	
 	return cm
+
+
+def center_of_mass_from_3d(loader):
+	'''
+	Stacks all the ground truth masks from the loader together into a 3D
+	arrray to find one point describing the approximate center of mass of
+	the organ defined in config.ORGAN
+
+	Returns: the point prompt as a tuple
+	'''
+
+	print('Calculating point prompt...')
+
+	stacked_gt_labels = np.array([])
+	for i, item in enumerate(loader):
+		ground_truth_mask = item['label'].squeeze().to(bool)
+
+		if i==0:
+			stacked_gt_labels = np.array([ground_truth_mask])
+		else:
+			stacked_gt_labels = np.vstack((stacked_gt_labels, ground_truth_mask[np.newaxis,...]))
+
+		print(stacked_gt_labels.shape)
+
+	cm = center_of_mass(stacked_gt_labels)
+	print(cm)
+	# round to closest int to get indices and
+	# only keep x and y axis
+	cm = (round(cm[1]), round(cm[2]))	
+	print(cm)
+
+	return cm
+
+
 
 
 
@@ -103,5 +138,5 @@ def get_two_data_splits(organ, split='train'):
 	return datasplit1, datasplit2
 
 
-loader = get_loader(organ = 'Task03_Liver', split= 'train')
-
+#loader = get_loader(organ = 'Task03_Liver', split= 'train')
+#center_of_mass_from_3d(loader)

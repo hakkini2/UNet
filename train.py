@@ -143,9 +143,9 @@ def train(trainLoader, valLoader, model, optimizer, lossFunc, img_format):
         mean_val_losses.append(np.mean(val_losses))
 
     # After training plot mean losses of epochs
-    plotLoss(mean_train_losses, fig_path=f'output/plots/trainingloss_{config.ORGAN}_{img_format}.png',
+    plotLoss(mean_train_losses, fig_path=f'{config.SAVED_PLOTS_PATH}trainingloss_{config.ORGAN}_{img_format}.png',
              title= f'{config.ORGAN}: {img_format.upper()} Mean Training Loss')
-    plotLoss(mean_val_losses, fig_path=f'output/plots/validationloss_{config.ORGAN}_{img_format}.png',
+    plotLoss(mean_val_losses, fig_path=f'{config.SAVED_PLOTS_PATH}validationloss_{config.ORGAN}_{img_format}.png',
              title=f'{config.ORGAN}: {img_format.upper()} Mean Validation Loss')
 
 

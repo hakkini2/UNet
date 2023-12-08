@@ -23,11 +23,13 @@ DATA_TXT_PATH_TEST = './dataset/dataset_list/PAOT_10_inner_test.txt'
 # path to saved SAM model checkpoint
 SAM_CHECKPOINT_PATH = './content/model_checkpoints/sam_vit_h_4b8939.pth'
 
+SAM_OUTPUT_PATH = 'output/sam/'
+
 # define the path to the base output directory
-BASE_OUTPUT = 'output'
-TEST_OUTPUT_PATH = 'output/plots/test_plots/'
-SAVED_PLOTS_PATH = 'output/plots/'
-SAVED_MODEL_PATH = 'output/pretrained/'
+BASE_OUTPUT = 'output/unet'
+TEST_OUTPUT_PATH = 'output/unet/plots/test_plots/'
+SAVED_PLOTS_PATH = 'output/unet/plots/'
+SAVED_MODEL_PATH = 'output/unet/pretrained/'
 
 # determine the device to be used for training and evaluation
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
