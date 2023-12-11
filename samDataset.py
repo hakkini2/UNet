@@ -42,6 +42,7 @@ transforms_sam = Compose([
 
 def get_point_prompt(ground_truth_map):
 	'''
+	------Individual prompt for each image------
 	Creates a point prompt for sam based on the centre of mass 
 		from the ground truth labels 
 	Returns: a tuple of the (x,y)-coordinates of the prompt
@@ -56,6 +57,7 @@ def get_point_prompt(ground_truth_map):
 
 def center_of_mass_from_3d(loader):
 	'''
+	------One prompt for all images------
 	Stacks all the ground truth masks from the loader together into a 3D
 	arrray to find one point describing the approximate center of mass of
 	the organ defined in config.ORGAN
@@ -86,17 +88,67 @@ def center_of_mass_from_3d(loader):
 	return cm
 
 
+def averaged_center_of_mass(loader):
+	'''
+	Calculate just the average of the individual centers of mass
+	'''
+	print('Calculating the averaged center of mass for the point prompt...')
+	cms_0 = []
+	cms_1 = []
+	for i, item in enumerate(loader):
+		ground_truth_mask = item['label'].squeeze().to(bool)
+		cm = center_of_mass(ground_truth_mask)
+		cm_0, cm_1 = round(cm[0]), round(cm[1])
+		cms_0.append(cm_0)
+		cms_1.append(cm_1)
+	avg_0 = sum(cms_0)/len(cms_0)
+	avg_1 = sum(cms_1)/len(cms_1)
+
+	print('avg center of mass:', avg_0, avg_1)
+
+	return (avg_0, avg_1)
 
 
 
 def get_loader(organ, split='train'):
 	# take the first data split for SAMs maasks
-	data_dicts, _ = get_two_data_splits(organ=organ, split=split)
+	data_dicts = get_data_dicts(organ=organ, split=split)
 
 	dataset = Dataset(data_dicts, transforms_sam)
 	loader = DataLoader(dataset, batch_size=config.BATCH_SIZE_SAM, num_workers=config.NUM_WORKERS, shuffle=False)
 
 	return loader
+
+
+def get_data_dicts(organ, split='train'):
+	'''
+	Get the images for the given split in a data dict
+	'''
+	organ = organ.split('_')[1].lower()
+
+	img_dir = os.path.join(config.DATASET_PATH_2D, f"{split}_2d_images")
+	lbl_dir = os.path.join(config.DATASET_PATH_2D, f"{split}_2d_masks")
+
+	img_fnames = []
+	names = []
+	for f in os.listdir(img_dir):
+		task = f.split('_')[0]
+		
+		if task == organ and os.path.isfile(os.path.join(img_dir, f)):
+			img_fnames.append(os.path.join(img_dir, f))
+			names.append(f.split('.')[0])
+
+	lbl_fnames = []
+	for f in os.listdir(lbl_dir):
+		task = f.split('_')[0]
+		if task == organ and os.path.isfile(os.path.join(lbl_dir, f)):
+			lbl_fnames.append(os.path.join(lbl_dir, f))
+
+	data = [{"image": img_fname, "label": lbl_fname, "name": name} for img_fname, lbl_fname, name in zip(img_fnames, lbl_fnames, names)]
+	
+	print(f'{split} len {format(len(data))}')
+
+	return data
 
 
 def get_two_data_splits(organ, split='train'):
@@ -138,5 +190,5 @@ def get_two_data_splits(organ, split='train'):
 	return datasplit1, datasplit2
 
 
-#loader = get_loader(organ = 'Task03_Liver', split= 'train')
-#center_of_mass_from_3d(loader)
+loader = get_loader(organ = 'Task03_Liver', split= 'train')
+averaged_center_of_mass(loader)

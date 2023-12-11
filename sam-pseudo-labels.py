@@ -7,9 +7,10 @@ import matplotlib.pyplot as plt
 import monai
 import cv2
 import numpy as np
+import pickle
 import torch
 from PIL import Image
-from samDataset import get_loader, get_point_prompt, center_of_mass_from_3d
+from samDataset import get_loader, get_point_prompt, center_of_mass_from_3d, averaged_center_of_mass
 from torchmetrics.functional.classification import dice
 from transformers import SamModel, SamProcessor
 
@@ -25,20 +26,20 @@ from utils.utils import (
 )
 import config
 
-
+# create directories for saving plots
+split = 'train'
+all_plots_path = config.SAM_OUTPUT_PATH + 'all/'
+best_plots_path = config.SAM_OUTPUT_PATH + 'top_best/'
+worst_plots_path = config.SAM_OUTPUT_PATH + 'top_worst/'
+dices_path = config.SAM_OUTPUT_PATH + 'dices/'
+Path(all_plots_path).mkdir(parents=True, exist_ok=True)
+Path(best_plots_path).mkdir(parents=True, exist_ok=True)
+Path(worst_plots_path).mkdir(parents=True, exist_ok=True)
+Path(dices_path).mkdir(parents=True, exist_ok=True)
 
 
 def main():
     torch.multiprocessing.set_sharing_strategy("file_system")
-
-    # create directories for saving plots
-    all_plots_path = config.SAM_OUTPUT_PATH + 'all/'
-    best_plots_path = config.SAM_OUTPUT_PATH + 'top_best/'
-    worst_plots_path = config.SAM_OUTPUT_PATH + 'top_worst/'
-    Path(all_plots_path).mkdir(parents=True, exist_ok=True)
-    Path(best_plots_path).mkdir(parents=True, exist_ok=True)
-    Path(worst_plots_path).mkdir(parents=True, exist_ok=True)
-
 
     # get pretrained SAM model - directly from Meta
     model = sam_model_registry['vit_h'](checkpoint=config.SAM_CHECKPOINT_PATH)
@@ -46,10 +47,17 @@ def main():
     predictor = SamPredictor(model)
 
     # get dataloader containing half of the training images
-    loader = get_loader(organ=config.ORGAN, split='train')
+    loader = get_loader(organ=config.ORGAN, split=split)
 
+    dices = predict_masks(loader, predictor)
+
+    saveDices(dices, split=split)
+
+
+def predict_masks(loader, predictor):
     # get point prompt - center of mass from all images of loader
-    prompt = center_of_mass_from_3d(loader)
+    #prompt = center_of_mass_from_3d(loader)
+    prompt = averaged_center_of_mass(loader)
 
     dices = []
     with torch.no_grad():
@@ -147,8 +155,23 @@ def main():
         plt.savefig(f'{config.SAM_OUTPUT_PATH}{config.ORGAN}_dice_histogram.png')
         plt.close()
 
+        return dices
 
 
+def saveDices(dices, split):
+    # save with pickle
+    pickle_path = dices_path + f'{split}_dice_scores.pkl'
+    with open (pickle_path, 'wb') as file:
+        pickle.dump(dices, file)
+
+    # reformat dice data for file
+    dices = list(map(lambda dice: (dice[0], dice[1].item()), dices))
+    
+    # save to a file
+    file_path = dices_path + f'{split}_dice_scores.txt'
+    with open(file_path, 'w') as f:
+        for line in dices:
+            f.write(f'{line}\n')
 
 
 
