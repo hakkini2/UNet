@@ -27,11 +27,11 @@ from utils.utils import (
 import config
 
 # create directories for saving plots
-split = 'train'
-all_plots_path = config.SAM_OUTPUT_PATH + 'all/'
-best_plots_path = config.SAM_OUTPUT_PATH + 'top_best/'
-worst_plots_path = config.SAM_OUTPUT_PATH + 'top_worst/'
-dices_path = config.SAM_OUTPUT_PATH + 'dices/'
+split = 'test'
+all_plots_path = config.SAM_OUTPUT_PATH + split + '_images/' + 'all/'
+best_plots_path = config.SAM_OUTPUT_PATH + split + '_images/' + 'top_best/'
+worst_plots_path = config.SAM_OUTPUT_PATH + split + '_images/' + 'top_worst/'
+dices_path = config.SAM_OUTPUT_PATH + split + '_images/' + 'dices/'
 Path(all_plots_path).mkdir(parents=True, exist_ok=True)
 Path(best_plots_path).mkdir(parents=True, exist_ok=True)
 Path(worst_plots_path).mkdir(parents=True, exist_ok=True)
@@ -48,18 +48,17 @@ def main():
 
     # get dataloader containing half of the training images
     loader = get_loader(organ=config.ORGAN, split=split)
+    # get trainloader to get the same point prompt
+    train_loader = get_loader(organ=config.ORGAN, split='train')
+    prompt = averaged_center_of_mass(train_loader)
 
-    dices = predict_masks(loader, predictor)
+    # do mask prediction and collect the dice scores
+    dices = predict_masks(loader, prompt, predictor)
 
     saveDices(dices, split=split)
 
 
-def predict_masks(loader, predictor):
-    # get point prompt - center of mass from all images of loader
-    #prompt = center_of_mass_from_3d(loader)
-    # get point prompt - average of the centers of masses of the 2D images
-    prompt = averaged_center_of_mass(loader)
-
+def predict_masks(loader, prompt, predictor):
     dices = []
     with torch.no_grad():
         for step, item in enumerate(loader):
@@ -79,14 +78,6 @@ def predict_masks(loader, predictor):
             #prompt = get_point_prompt(ground_truth_mask)
             input_point = np.array([[prompt[1], prompt[0]]])
             input_label = np.array([1])
-
-            plt.figure(figsize=(10,10))
-            plt.imshow(color_img, cmap='gray')
-            plt.imshow(ground_truth_mask.cpu().numpy(), alpha=0.6, cmap="copper")
-            show_points(input_point, input_label, plt.gca())
-            plt.axis('on')
-            plt.savefig(f'{config.SAM_OUTPUT_PATH}test_img_with_test_prompt.png')
-            plt.close()
 
             # get predicted masks
             masks, scores, logits = predictor.predict(
@@ -153,7 +144,7 @@ def predict_masks(loader, predictor):
         # draw a histogram of dice scores
         plt.hist([dice_info[1].item() for dice_info in dices], bins=20)
         plt.title(f'SAM: {config.ORGAN} dice histogram, avg: {avg:.3f}')
-        plt.savefig(f'{config.SAM_OUTPUT_PATH}{config.ORGAN}_dice_histogram.png')
+        plt.savefig(f'{config.SAM_OUTPUT_PATH}{split}_images/{config.ORGAN}_dice_histogram.png')
         plt.close()
 
         return dices
