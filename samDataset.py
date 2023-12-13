@@ -4,6 +4,7 @@ import os
 import sys
 import math
 import numpy as np
+import pickle
 from scipy.ndimage import center_of_mass
 
 from monai.data import DataLoader, Dataset, CacheDataset
@@ -190,5 +191,39 @@ def get_two_data_splits(organ, split='train'):
 	return datasplit1, datasplit2
 
 
-loader = get_loader(organ = 'Task03_Liver', split= 'train')
-averaged_center_of_mass(loader)
+
+def get_n_worst_images(n, organ, split, path_to_dices):
+	'''
+	Input:
+		n - number of images to return
+		organ - target organ in the format 'TaskXX_Organ', e.g. 'Task03_Liver'
+		split - train, test, or val - from which data split to take the images 
+		path_to_dices - the path to the .pkl file containing the ordered list
+		of dice scores acquired from SAM
+
+	Returns:
+		a data dict of the n worst performing images on SAM.
+	'''
+	with open(path_to_dices, 'rb') as f:
+		dices = pickle.load(f)
+	
+	# take the n last elements from the list - these are the n worst dices
+	n_worst = dices[-n:]
+
+	# get data_dict for the given organ and split to search the images from
+	all_cases = get_data_dicts(organ, split)
+
+	# search for matches
+	matches = []
+	for (img_name, dice) in n_worst:
+		match = list(filter(lambda img_dict: img_dict['name'] == img_name, all_cases))
+		matches = matches + match
+	
+	return matches
+
+	
+
+
+
+
+

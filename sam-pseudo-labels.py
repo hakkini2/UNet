@@ -28,10 +28,10 @@ import config
 
 # create directories for saving plots
 split = 'train'
-all_plots_path = config.SAM_OUTPUT_PATH + 'all/'
-best_plots_path = config.SAM_OUTPUT_PATH + 'top_best/'
-worst_plots_path = config.SAM_OUTPUT_PATH + 'top_worst/'
-dices_path = config.SAM_OUTPUT_PATH + 'dices/'
+all_plots_path = config.SAM_OUTPUT_PATH + split + '_images/' + 'all/'
+best_plots_path = config.SAM_OUTPUT_PATH + split + '_images/' + 'top_best/'
+worst_plots_path = config.SAM_OUTPUT_PATH + split + '_images/' + 'top_worst/'
+dices_path = config.SAM_OUTPUT_PATH + split + '_images/' + 'dices/'
 Path(all_plots_path).mkdir(parents=True, exist_ok=True)
 Path(best_plots_path).mkdir(parents=True, exist_ok=True)
 Path(worst_plots_path).mkdir(parents=True, exist_ok=True)
@@ -153,7 +153,7 @@ def predict_masks(loader, predictor):
         # draw a histogram of dice scores
         plt.hist([dice_info[1].item() for dice_info in dices], bins=20)
         plt.title(f'SAM: {config.ORGAN} dice histogram, avg: {avg:.3f}')
-        plt.savefig(f'{config.SAM_OUTPUT_PATH}{config.ORGAN}_dice_histogram.png')
+        plt.savefig(f'{config.SAM_OUTPUT_PATH}{split}_images/{config.ORGAN}_dice_histogram.png')
         plt.close()
 
         return dices
