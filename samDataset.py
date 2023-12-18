@@ -221,9 +221,4 @@ def get_n_worst_images(n, organ, split, path_to_dices):
 	
 	return matches
 
-	
-
-
-
-
 
