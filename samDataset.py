@@ -192,7 +192,7 @@ def get_two_data_splits(organ, split='train'):
 
 
 
-def get_n_worst_images(n, organ, split, path_to_dices):
+def get_n_worst_images(n, organ, split):
 	'''
 	Input:
 		n - number of images to return
@@ -204,6 +204,8 @@ def get_n_worst_images(n, organ, split, path_to_dices):
 	Returns:
 		a data dict of the n worst performing images on SAM.
 	'''
+	path_to_dices = os.path.join(config.SAM_OUTPUT_PATH, f'{split}_images/dices/{split}_dice_scores.pkl')
+	
 	with open(path_to_dices, 'rb') as f:
 		dices = pickle.load(f)
 	
@@ -220,5 +222,4 @@ def get_n_worst_images(n, organ, split, path_to_dices):
 		matches = matches + match
 	
 	return matches
-
 

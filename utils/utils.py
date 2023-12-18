@@ -118,7 +118,7 @@ def visualizeSegmentation3d(img, lbl, name, predicted_label):
         plt.imshow(predicted_label[:,:,60], cmap='copper')
         plt.axis('off')
         plt.tight_layout()
-        plt.savefig(f'output/plots/segmentation_result_{config.IMG_FORMAT}.png')
+        plt.savefig(f'{config.SAVED_PLOTS_PATH}/segmentation_result_{config.IMG_FORMAT}.png')
         plt.close()
 
 
@@ -126,7 +126,7 @@ def visualizeSegmentation2d(img, lbl, name, predicted_label):
     with torch.no_grad():
 
         plt.figure(figsize=(12,4))
-        plt.suptitle(name[0], fontsize=14)
+        plt.suptitle(f'{name[0]}', fontsize=14)
         plt.subplot(1,3,1)
         plt.imshow(img[0][0][:,:].to('cpu'), cmap='gray')
         plt.axis('off')
@@ -137,12 +137,22 @@ def visualizeSegmentation2d(img, lbl, name, predicted_label):
         plt.imshow(predicted_label[0][0][:,:], cmap='copper')
         plt.axis('off')
         plt.tight_layout()
-        plt.savefig(f'output/plots/segmentation_result_{config.IMG_FORMAT}.png')
+        plt.savefig(f'{config.SAVED_PLOTS_PATH}/segmentation_result_{config.IMG_FORMAT}.png')
         plt.close()
 
-def saveCheckpoint(state, filename):
+def saveCheckpoint(state):
     print('Saving model checkpoint..')
-    torch.save(state, config.SAVED_MODEL_PATH + filename)
+    if config.IMG_FORMAT == '2d':
+        if config.TRAIN_DATA != 'all':
+            train_data = config.TRAIN_DATA.split('_')
+            train_data_text = f'{config.N_TRAIN_SAMPLES}_{train_data[1]}'
+        else:
+            train_data_text = f'{config.TRAIN_DATA}'
+        fname = f'unet_{config.ORGAN.lower()}_{train_data_text}_2D.pth'
+    if config.IMG_FORMAT == '3d':
+        fname = f'unet_{config.ORGAN.lower()}_3D.pth'
+    
+    torch.save(state, config.SAVED_MODEL_PATH + fname)
 
 
 def plot_dice_table(conf, all_dices, output_folder, mode='2D'):

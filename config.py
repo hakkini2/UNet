@@ -11,6 +11,12 @@ N_TEST_SAMPLES = 10   # How many top/worst test plots are saved
 # NOTE: THE FORMAT TaskXX_Organ
 ORGAN = 'Task03_Liver' #'Task03_Liver'
 
+# Training dataset for UNet
+TRAIN_DATA_LIST = ['all', 'n_random', 'n_worst']
+TRAIN_DATA = TRAIN_DATA_LIST[1]
+N_TRAIN_SAMPLES = 10
+
+
 # path to dataset
 DATASET_PATH_3D = '/l/ComputerVision/CLIP-and-SwinUNETR/Swin-UNETR-with-MSD/data/'
 DATASET_PATH_2D = './content/'
@@ -46,7 +52,7 @@ NUM_LEVELS = 3
 # initialize learning rate, number of epochs to train for, and the
 # batch size
 INIT_LR = 0.0005
-NUM_EPOCHS = 16
+NUM_EPOCHS = 2
 if IMG_FORMAT == '2d':
     BATCH_SIZE = 2
 else:
@@ -55,11 +61,6 @@ BATCH_SIZE_SAM = 1 # batch size for SAM
 WEIGHT_DECAY = 1e-5
 
 NUM_WORKERS = 0 # os.cpu_count()
-
-# define the input image dimensions
-INPUT_IMAGE_WIDTH = 256
-INPUT_IMAGE_HEIGHT = 256
-INPUT_IMAGE_DEPTH = 256 # ???
 
 # define threshold to filter weak predictions
 THRESHOLD = 0.5

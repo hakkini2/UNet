@@ -1,7 +1,10 @@
 # import the necessary packages
 import nibabel as nib
 import os
+import glob
 import sys
+import random
+import pickle
 from monai.data import DataLoader, Dataset, CacheDataset
 
 from monai.transforms import (
@@ -157,7 +160,20 @@ def getLoader3d(split, organ):
 
 
 def getLoader2d(split, organ):
-	data_dicts = getDataPaths2d(split=split, organ=organ)
+	if split=='train':
+		print('Training with training dataset set to: ', config.TRAIN_DATA)
+
+	# data dicts for testing, validation and training with all images
+	if split != 'train' or config.TRAIN_DATA == 'all':
+		data_dicts = getDataPaths2d(split=split, organ=organ)
+
+	# data dicts for training with N random images
+	elif config.TRAIN_DATA=='n_random':
+		data_dicts = getDataPaths2dNRandom(split=split, organ=organ)
+	
+	# data dicts for training with N worst images (ranked with SAM)
+	elif config.TRAIN_DATA=='n_worst':
+		data_dicts = getDataPaths2dNWorst(split=split, organ=organ)
 
 	if split=='train':
 		dataset = Dataset(data=data_dicts, transform=train_transforms_2d)
@@ -169,6 +185,7 @@ def getLoader2d(split, organ):
 				num_workers=config.NUM_WORKERS)
 
 	return loader
+
 
 # 3D data paths
 
@@ -243,6 +260,8 @@ def getTestPaths3d(organ):
 
 
 # 2D data paths
+
+# all 2D images
 def getDataPaths2d(split, organ):
 	# reformat organ for 2D case
 	organ = organ.split('_')[1].lower()
@@ -270,3 +289,59 @@ def getDataPaths2d(split, organ):
 	print(f'{split} len {format(len(data))}')
 
 	return data
+
+
+# N random 2D images
+def getDataPaths2dNRandom(split, organ):
+	# reformat organ for 2D case
+	organ = organ.split('_')[1].lower()
+
+	img_dir = os.path.join(config.DATASET_PATH_2D, f"{split}_2d_images")
+	lbl_dir = os.path.join(config.DATASET_PATH_2D, f"{split}_2d_masks")
+
+	# get N random images from the split
+	organ_images = glob.glob(f'{img_dir}/{organ}*.nii.gz')
+	random_images = random.sample(organ_images, config.N_TRAIN_SAMPLES)
+	random_masks = [random_image.replace('images', 'masks') for random_image in random_images]
+	names = [img_string.split('/')[-1].split('.')[0] for img_string in random_images]
+
+	data = [{"image": img_fname, "label": lbl_fname, "name": name} for img_fname, lbl_fname, name in zip(random_images, random_masks, names)]
+	
+	print(f'{split} len {format(len(data))}, random images')
+
+	return data
+
+
+# N top worst 2D images
+def getDataPaths2dNWorst(split, organ):
+	'''
+	Input:
+		split - train, test, or val - from which data split to take the images 
+		organ - target organ in the format 'TaskXX_Organ', e.g. 'Task03_Liver'
+	Returns:
+		a data dict of the n worst performing images on SAM.
+	'''
+
+	# the path to the .pkl file containing the ordered list of dice scores acquired from SAM
+	path_to_dices = os.path.join(config.SAM_OUTPUT_PATH, f'{split}_images/dices/{split}_dice_scores.pkl')
+	
+	with open(path_to_dices, 'rb') as f:
+		dices = pickle.load(f)
+	
+	# take the n last elements from the list - these are the n worst dices
+	n_worst = dices[-config.N_TRAIN_SAMPLES:]
+
+	# get data_dict for the given organ and split to search the images from
+	all_cases = getDataPaths2d(split, organ)
+
+	# search for matches
+	matches = []
+	for (img_name, dice) in n_worst:
+		match = list(filter(lambda img_dict: img_dict['name'] == img_name, all_cases))
+		matches = matches + match
+
+	print(f'{split} len {format(len(matches))}, worst images (ranked with SAM)')
+	
+	return matches
+
+

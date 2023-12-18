@@ -1,4 +1,4 @@
-from dataset import (
+from unetDataset import (
     getLoader3d,
     getLoader2d
 )
@@ -92,14 +92,14 @@ def train(trainLoader, valLoader, model, optimizer, lossFunc, img_format):
 
             train_losses.append(loss.item())
             
-            # visualize 3D segmentation
+            # visualize 3D segmentation - to check progress while running
             if img_format == '3d' and step % config.PLOT_SAVING_INTERVAL == 0:
                 # get binary segmentation for visualization
                 predicted_prob = torch.sigmoid(predicted[0][0]) # first of the 4 crops
                 predicted_label = (predicted_prob > config.THRESHOLD).astype(np.uint8)
                 visualizeSegmentation3d(img, lbl, name, predicted_label)
             
-            # visualize 2D segmentation
+            # visualize 2D segmentation - to check progress while running
             if img_format == '2d' and step % config.PLOT_SAVING_INTERVAL == 0:
                 predicted_prob = torch.sigmoid(predicted)
                 predicted_label = (predicted_prob > config.THRESHOLD).astype(np.uint8)
@@ -131,7 +131,7 @@ def train(trainLoader, valLoader, model, optimizer, lossFunc, img_format):
                     'optimizer_state_dict': optimizer.state_dict(),
                     'loss': best_val_loss,
                 }
-                saveCheckpoint(state, f'unet_{config.ORGAN.lower()}_{img_format}.pth')
+                saveCheckpoint(state)
                 print(f'Model was saved. Current best val loss {best_val_loss}')
                 best_val_epoch = epoch
             else:
@@ -142,16 +142,27 @@ def train(trainLoader, valLoader, model, optimizer, lossFunc, img_format):
         mean_train_losses.append(np.mean(train_losses))
         mean_val_losses.append(np.mean(val_losses))
 
-    # After training plot mean losses of epochs
-    plotLoss(mean_train_losses, fig_path=f'{config.SAVED_PLOTS_PATH}trainingloss_{config.ORGAN}_{img_format}.png',
-             title= f'{config.ORGAN}: {img_format.upper()} Mean Training Loss')
-    plotLoss(mean_val_losses, fig_path=f'{config.SAVED_PLOTS_PATH}validationloss_{config.ORGAN}_{img_format}.png',
-             title=f'{config.ORGAN}: {img_format.upper()} Mean Validation Loss')
-
-
-        
-        
+    # After training, plot mean losses of epochs
+    if config.IMG_FORMAT == '3d':
+        plotLoss(mean_train_losses, fig_path=f'{config.SAVED_PLOTS_PATH}trainingloss_{config.ORGAN}_{img_format}.png',
+                title= f'{config.ORGAN}: {img_format.upper()} Mean Training Loss')
+        plotLoss(mean_val_losses, fig_path=f'{config.SAVED_PLOTS_PATH}validationloss_{config.ORGAN}_{img_format}.png',
+                title=f'{config.ORGAN}: {img_format.upper()} Mean Validation Loss')
     
+    if config.IMG_FORMAT == '2d':
+        if config.TRAIN_DATA != 'all':
+            train_data = config.TRAIN_DATA.split('_')
+            plot_text = f'{config.N_TRAIN_SAMPLES} {train_data[1]} train images'
+            fname_text = f'{config.N_TRAIN_SAMPLES}_{train_data[1]}'
+        else:
+            plot_text = f'{config.TRAIN_DATA} train images'
+            fname_text = f'{config.TRAIN_DATA}'
+
+        plotLoss(mean_train_losses, fig_path=f'{config.SAVED_PLOTS_PATH}trainingloss_{config.ORGAN}_{fname_text}_{img_format}.png',
+                title= f'{config.ORGAN}: {img_format.upper()} Mean Training Loss, {plot_text}')
+        plotLoss(mean_val_losses, fig_path=f'{config.SAVED_PLOTS_PATH}validationloss_{config.ORGAN}_{fname_text}_{img_format}.png',
+                title=f'{config.ORGAN}: {img_format.upper()} Mean Validation Loss, {plot_text}')
+
     
     
 
