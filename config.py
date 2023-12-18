@@ -14,7 +14,7 @@ ORGAN = 'Task03_Liver' #'Task03_Liver'
 # Training dataset for UNet
 TRAIN_DATA_LIST = ['all', 'n_random', 'n_worst']
 TRAIN_DATA = TRAIN_DATA_LIST[1]
-N_TRAIN_SAMPLES = 10
+N_TRAIN_SAMPLES = 1000
 
 
 # path to dataset
@@ -52,7 +52,7 @@ NUM_LEVELS = 3
 # initialize learning rate, number of epochs to train for, and the
 # batch size
 INIT_LR = 0.0005
-NUM_EPOCHS = 2
+NUM_EPOCHS = 16
 if IMG_FORMAT == '2d':
     BATCH_SIZE = 2
 else:
