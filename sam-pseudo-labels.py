@@ -58,7 +58,7 @@ def predict_masks(loader, predictor):
     # get point prompt - center of mass from all images of loader
     #prompt = center_of_mass_from_3d(loader)
     # get point prompt - average of the centers of masses of the 2D images
-    prompt = averaged_center_of_mass(loader)
+    #prompt = averaged_center_of_mass(loader)
 
     dices = []
     with torch.no_grad():
@@ -76,18 +76,18 @@ def predict_masks(loader, predictor):
             predictor.set_image(color_img)
 
             # get point prompt - individual for each img
-            #prompt = get_point_prompt(ground_truth_mask)
+            prompt = get_point_prompt(ground_truth_mask)
             input_point = np.array([[prompt[1], prompt[0]]])
             input_label = np.array([1])
 
-            plt.figure(figsize=(10,10))
-            plt.imshow(color_img, cmap='gray')
-            plt.imshow(ground_truth_mask.cpu().numpy(), alpha=0.6, cmap="copper")
-            show_points(input_point, input_label, plt.gca())
-            plt.axis('on')
-            plt.savefig(f'{config.SAM_OUTPUT_PATH}test_img_with_test_prompt.png')
-            plt.close()
-
+            # plt.figure(figsize=(10,10))
+            # plt.imshow(color_img, cmap='gray')
+            # plt.imshow(ground_truth_mask.cpu().numpy(), alpha=0.6, cmap="copper")
+            # show_points(input_point, input_label, plt.gca())
+            # plt.axis('on')
+            # plt.savefig(f'{config.SAM_OUTPUT_PATH}test_img_with_test_prompt.png')
+            # plt.close()
+            
             # get predicted masks
             masks, scores, logits = predictor.predict(
                 point_coords=input_point,

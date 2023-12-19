@@ -13,6 +13,7 @@ from pathlib import Path
 from imutils import paths
 import nibabel as nib
 import shutil
+import argparse
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 import numpy as np
@@ -25,15 +26,20 @@ from torchmetrics.functional.classification import dice
 from utils.utils import calculate_dice_score
 
 
-def test(testLoader, model, img_format):
-	# create directories for saving test plots
-	all_plots_path = config.TEST_OUTPUT_PATH + 'all/'
-	best_plots_path = config.TEST_OUTPUT_PATH + 'top_best/'
-	worst_plots_path = config.TEST_OUTPUT_PATH + 'top_worst/'
-	Path(all_plots_path).mkdir(parents=True, exist_ok=True)
-	Path(best_plots_path).mkdir(parents=True, exist_ok=True)
-	Path(worst_plots_path).mkdir(parents=True, exist_ok=True)
-	
+# create directories for saving test plots
+if config.IMG_FORMAT == '2d':
+	save_path = config.TEST_OUTPUT_PATH + config.TRAIN_DATA + '/'
+if config.IMG_FORMAT == '3d':
+	save_path = config.TEST_OUTPUT_PATH + config.IMG_FORMAT + '/'
+all_plots_path = save_path + 'all/'
+best_plots_path = save_path + 'top_best/'
+worst_plots_path = save_path + 'top_worst/'
+Path(all_plots_path).mkdir(parents=True, exist_ok=True)
+Path(best_plots_path).mkdir(parents=True, exist_ok=True)
+Path(worst_plots_path).mkdir(parents=True, exist_ok=True)
+
+
+def test(testLoader, model):
 	# set model to evaluation mode
 	model.eval()
 
@@ -110,26 +116,30 @@ def test(testLoader, model, img_format):
 
 
 def main():
-	# get image format the model was trained on (2d / 3d)
-	img_format = config.IMG_FORMAT
+	parser = argparse.ArgumentParser()
+	parser.add_argument('--checkpoint_name',
+                        default = 'unet_task03_liver_2d.pth',
+                        help='Name of model checkpoint (.pth file)'
+                        )
+	args = parser.parse_args()
 
 	# create loader
-	if img_format == '3d':
+	if  config.IMG_FORMAT == '3d':
 		testLoader = getLoader3d('test', config.ORGAN)
 	else:	#2d
 		testLoader = getLoader2d('test', config.ORGAN)
 	
 	# get trained model from checkpoint
-	if img_format == '3d':
+	if  config.IMG_FORMAT == '3d':
 		model = UNet3D().to(config.DEVICE)
 	else:
 		model = UNet2D().to(config.DEVICE)
-	checkpoint_name = f'unet_{config.ORGAN.lower()}_{img_format}.pth'
+	checkpoint_name = args.checkpoint_name
 	checkpoint = torch.load(os.path.join(config.SAVED_MODEL_PATH, checkpoint_name))
 	model.load_state_dict(checkpoint['model_state_dict'])
 
 	# run test loop for test images and get dice scores
-	dices = test(testLoader, model, img_format)
+	dices = test(testLoader, model)
 
 	# get average dice on test set
 	dices_data = [dice_item[1].item() for dice_item in dices]
@@ -140,7 +150,7 @@ def main():
 	plt.hist(dices_data, bins=20)
 	plt.title(f'{config.ORGAN} test dice histogram, {config.IMG_FORMAT}, avg: {average_dice:1.4f}')
 	plt.xlabel('Dice')
-	plt.savefig(f'{config.TEST_OUTPUT_PATH}{config.ORGAN.lower()}_test_dice_histogram_{config.IMG_FORMAT}.png')
+	plt.savefig(f'{save_path}/{config.ORGAN.lower()}_test_dice_histogram_{config.IMG_FORMAT}.png')
 	plt.close()
 	
 
