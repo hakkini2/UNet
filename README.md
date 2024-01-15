@@ -13,7 +13,7 @@ If using 2D data, in *config.py*, the variable **IMG_FORMAT** must be set to *'2
 
 The training data to be used is defined in *config.py* with variables **TRAIN_DATA** and **N_TRAIN_SAMPLES**. The value for **TRAIN_DATA** is chosen from the list **TRAIN_DATA_LIST = ['all', 'n_random', 'n_worst']**, which contains three options: using all training images, using N random images or N worst performing training images (ranked by SAM inference with point prompt). The variable **N_TRAIN_SAMPLES** defines N; how many training images are included in N worst or N random.
 
-Training is the simply done by running ```python3 train.py```
+Training is then simply done by ```python3 train.py```
 
 #### Testing
 
