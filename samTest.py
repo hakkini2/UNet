@@ -27,7 +27,7 @@ from utils.utils import (
 import config
 
 # create directories for saving plots
-split = 'test'
+split = 'val'
 all_plots_path = config.SAM_OUTPUT_PATH + split + '_images/' + 'all/'
 best_plots_path = config.SAM_OUTPUT_PATH + split + '_images/' + 'top_best/'
 worst_plots_path = config.SAM_OUTPUT_PATH + split + '_images/' + 'top_worst/'
@@ -49,16 +49,16 @@ def main():
     # get dataloader containing half of the training images
     loader = get_loader(organ=config.ORGAN, split=split)
     # get trainloader to get the same point prompt
-    train_loader = get_loader(organ=config.ORGAN, split='train')
-    prompt = averaged_center_of_mass(train_loader)
+    #train_loader = get_loader(organ=config.ORGAN, split='train')
+    #prompt = averaged_center_of_mass(train_loader)
 
     # do mask prediction and collect the dice scores
-    dices = predict_masks(loader, prompt, predictor)
+    dices = predict_masks(loader, predictor)
 
     saveDices(dices, split=split)
 
 
-def predict_masks(loader, prompt, predictor):
+def predict_masks(loader, predictor):
     dices = []
     with torch.no_grad():
         for step, item in enumerate(loader):
@@ -75,7 +75,7 @@ def predict_masks(loader, prompt, predictor):
             predictor.set_image(color_img)
 
             # get point prompt - individual for each img
-            #prompt = get_point_prompt(ground_truth_mask)
+            prompt = get_point_prompt(ground_truth_mask)
             input_point = np.array([[prompt[1], prompt[0]]])
             input_label = np.array([1])
 

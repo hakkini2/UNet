@@ -138,6 +138,9 @@ def main():
 	checkpoint = torch.load(os.path.join(config.SAVED_MODEL_PATH, checkpoint_name))
 	model.load_state_dict(checkpoint['model_state_dict'])
 
+	print(f'Using model checkpoint: {checkpoint_name}')
+	time.sleep(3)
+	
 	# run test loop for test images and get dice scores
 	dices = test(testLoader, model)
 
@@ -147,10 +150,17 @@ def main():
 	print(f'\nAverage test dice score on {config.ORGAN}: {average_dice:1.4f}')
 
 	# plot a histogram of the dice scores
+
+	if config.TRAIN_DATA != 'all':
+		train_data = config.TRAIN_DATA.split('_')
+		model_specs = f'{config.N_TRAIN_SAMPLES}_{train_data[1]}'
+	else:
+		model_specs = f'{config.TRAIN_DATA}'
+
 	plt.hist(dices_data, bins=20)
-	plt.title(f'{config.ORGAN} test dice histogram, {config.IMG_FORMAT}, avg: {average_dice:1.4f}')
+	plt.title(f'{config.ORGAN}: {config.IMG_FORMAT} test dice avg: {average_dice:1.4f} ({model_specs})')
 	plt.xlabel('Dice')
-	plt.savefig(f'{save_path}/{config.ORGAN.lower()}_test_dice_histogram_{config.IMG_FORMAT}.png')
+	plt.savefig(f'{save_path}/{config.ORGAN.lower()}_test_dice_histogram_{model_specs}_{config.IMG_FORMAT}.png')
 	plt.close()
 	
 

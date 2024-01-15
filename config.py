@@ -13,7 +13,7 @@ ORGAN = 'Task03_Liver' #'Task03_Liver'
 
 # Training dataset for UNet
 TRAIN_DATA_LIST = ['all', 'n_random', 'n_worst']
-TRAIN_DATA = TRAIN_DATA_LIST[1]
+TRAIN_DATA = TRAIN_DATA_LIST[0]
 N_TRAIN_SAMPLES = 1000
 
 
