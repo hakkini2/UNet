@@ -124,13 +124,13 @@ def main():
 	args = parser.parse_args()
 
 	# create loader
-	if  config.IMG_FORMAT == '3d':
+	if config.IMG_FORMAT == '3d':
 		testLoader = getLoader3d('test', config.ORGAN)
 	else:	#2d
 		testLoader = getLoader2d('test', config.ORGAN)
 	
 	# get trained model from checkpoint
-	if  config.IMG_FORMAT == '3d':
+	if config.IMG_FORMAT == '3d':
 		model = UNet3D().to(config.DEVICE)
 	else:
 		model = UNet2D().to(config.DEVICE)

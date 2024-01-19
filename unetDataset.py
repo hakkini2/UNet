@@ -323,7 +323,8 @@ def getDataPaths2dNWorst(split, organ):
 	'''
 
 	# the path to the .pkl file containing the ordered list of dice scores acquired from SAM
-	path_to_dices = os.path.join(config.SAM_OUTPUT_PATH, f'{split}_images/dices/{split}_dice_scores.pkl')
+	organ_name = organ.split('_')[1].lower()
+	path_to_dices = os.path.join(config.SAM_OUTPUT_PATH, f'{split}_images/dices/{organ_name}_{split}_dice_scores.pkl')
 	
 	with open(path_to_dices, 'rb') as f:
 		dices = pickle.load(f)

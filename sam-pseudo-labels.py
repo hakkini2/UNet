@@ -51,7 +51,7 @@ def main():
 
     dices = predict_masks(loader, predictor)
 
-    saveDices(dices, split=split)
+    saveDices(dices, split=split, organ=config.ORGAN)
 
 
 def predict_masks(loader, predictor):
@@ -159,9 +159,10 @@ def predict_masks(loader, predictor):
         return dices
 
 
-def saveDices(dices, split):
+def saveDices(dices, split, organ):
+    organ_name = organ.split('_')[1].lower()
     # save with pickle
-    pickle_path = dices_path + f'{split}_dice_scores.pkl'
+    pickle_path = dices_path + f'{organ_name}_{split}_dice_scores.pkl'
     with open (pickle_path, 'wb') as file:
         pickle.dump(dices, file)
 
@@ -169,12 +170,10 @@ def saveDices(dices, split):
     dices = list(map(lambda dice: (dice[0], dice[1].item()), dices))
     
     # save to a file
-    file_path = dices_path + f'{split}_dice_scores.txt'
+    file_path = dices_path + f'{organ_name}_{split}_dice_scores.txt'
     with open(file_path, 'w') as f:
         for line in dices:
             f.write(f'{line}\n')
-
-
 
 
 if __name__ == '__main__':
