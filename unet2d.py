@@ -17,9 +17,11 @@ class Block(Module):
 		super(Block, self).__init__()
 		# store the convolution and RELU layers
 		self.conv = Sequential(
-			Conv2d(inChannels, outChannels, kernel_size=3, stride=1, padding=1),
+			Conv2d(inChannels, outChannels, kernel_size=3, stride=1, padding=1, bias=False),
+			BatchNorm2d(outChannels),
 			ReLU(inplace=True),	#try save some memory with inplace
-			Conv2d(outChannels, outChannels, kernel_size=3, stride=1, padding=1),
+			Conv2d(outChannels, outChannels, kernel_size=3, stride=1, padding=1, bias=False),
+			BatchNorm2d(outChannels),
 			ReLU(inplace=True)
 		)
 		
