@@ -71,11 +71,12 @@ def normalize8(I):
     I = ((I - mn)/mx) * 255
     return I.astype(np.uint8)
 
-def plotLoss(losses, fig_path = 'output/plots/trainingloss.png', title='Loss'):
+def plotLoss(trainlosses, vallosses, fig_path, title='Loss'):
     # Plotting losses
     plt.figure(figsize=(10, 5))
     plt.title(title)
-    plt.plot(losses, label="Loss")
+    plt.plot(trainlosses, label="Training loss")
+    plt.plot(vallosses, label='Validation loss')
     plt.xlabel("Batch")
     plt.ylabel("Loss")
     plt.legend()

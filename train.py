@@ -66,7 +66,7 @@ def train(trainLoader, valLoader, model, optimizer, lossFunc, img_format):
             # see the first image crop 
             #if step==0:
             #    visualizeTransformedData3d(img[0][0].to('cpu'),lbl[0][0].to('cpu'),60)
-
+                        
             # forward pass
             if img_format == '3d':
                 with torch.cuda.amp.autocast():
@@ -144,10 +144,9 @@ def train(trainLoader, valLoader, model, optimizer, lossFunc, img_format):
 
     # After training, plot mean losses of epochs
     if config.IMG_FORMAT == '3d':
-        plotLoss(mean_train_losses, fig_path=f'{config.SAVED_PLOTS_PATH}trainingloss_{config.ORGAN}_{img_format}.png',
-                title= f'{config.ORGAN}: {img_format.upper()} Mean Training Loss')
-        plotLoss(mean_val_losses, fig_path=f'{config.SAVED_PLOTS_PATH}validationloss_{config.ORGAN}_{img_format}.png',
-                title=f'{config.ORGAN}: {img_format.upper()} Mean Validation Loss')
+        plotLoss(mean_train_losses, fig_path=f'{config.SAVED_PLOTS_PATH}loss_{config.ORGAN}_{img_format}.png',
+                title= f'{config.ORGAN}: {img_format.upper()} Mean Training and Validation Loss')
+
     
     if config.IMG_FORMAT == '2d':
         if config.TRAIN_DATA != 'all':
@@ -158,11 +157,9 @@ def train(trainLoader, valLoader, model, optimizer, lossFunc, img_format):
             plot_text = f'{config.TRAIN_DATA} train images'
             fname_text = f'{config.TRAIN_DATA}'
 
-        plotLoss(mean_train_losses, fig_path=f'{config.SAVED_PLOTS_PATH}trainingloss_{config.ORGAN}_{fname_text}_{img_format}.png',
-                title= f'{config.ORGAN}: {img_format.upper()} Mean Training Loss, {plot_text}')
-        plotLoss(mean_val_losses, fig_path=f'{config.SAVED_PLOTS_PATH}validationloss_{config.ORGAN}_{fname_text}_{img_format}.png',
-                title=f'{config.ORGAN}: {img_format.upper()} Mean Validation Loss, {plot_text}')
-
+        plotLoss(mean_train_losses, mean_val_losses, fig_path=f'{config.SAVED_PLOTS_PATH}loss_{config.ORGAN}_{fname_text}_{img_format}.png',
+                title= f'{config.ORGAN}: {img_format.upper()} Mean Training and Validation Loss, {plot_text}')
+    
     
     
 

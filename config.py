@@ -10,7 +10,7 @@ N_TEST_SAMPLES = 10   # How many top/worst test plots are saved
 #organ to train/test on
 # NOTE: THE FORMAT TaskXX_Organ
 ORGAN_LIST = ['Task03_Liver', 'Task06_Lung', 'Task07_Pancreas', 'Task08_HepaticVessel', 'Task09_Spleen', 'Task10_Colon']
-ORGAN = ORGAN_LIST[4]
+ORGAN = ORGAN_LIST[0]
 
 # Training dataset for UNet
 TRAIN_DATA_LIST = ['all', 'n_random', 'n_worst']
@@ -53,7 +53,7 @@ NUM_LEVELS = 3
 # initialize learning rate, number of epochs to train for, and the
 # batch size
 INIT_LR = 0.0005
-NUM_EPOCHS = 16
+NUM_EPOCHS = 24
 if IMG_FORMAT == '2d':
     BATCH_SIZE = 2
 else:

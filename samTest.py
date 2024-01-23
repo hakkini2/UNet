@@ -27,7 +27,7 @@ from utils.utils import (
 import config
 
 # create directories for saving plots
-split = 'train'
+split = 'train' # train, val, test
 all_plots_path = config.SAM_OUTPUT_PATH + split + '_images/' + 'all/'
 best_plots_path = config.SAM_OUTPUT_PATH + split + '_images/' + 'top_best/'
 worst_plots_path = config.SAM_OUTPUT_PATH + split + '_images/' + 'top_worst/'
