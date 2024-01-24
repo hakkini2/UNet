@@ -162,6 +162,7 @@ def getLoader3d(split, organ):
 def getLoader2d(split, organ):
 	if split=='train':
 		print('Training with training dataset set to: ', config.TRAIN_DATA)
+		print('Organ: ', organ)
 
 	# data dicts for testing, validation and training with all images
 	if split != 'train' or config.TRAIN_DATA == 'all':
