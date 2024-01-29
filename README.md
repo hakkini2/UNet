@@ -1,4 +1,4 @@
-# SAm and UNet
+# SAM and UNet
 
 ### about data formatting 
 
