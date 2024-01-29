@@ -10,7 +10,7 @@ N_TEST_SAMPLES = 10   # How many top/worst test plots are saved
 #organ to train/test on
 # NOTE: THE FORMAT TaskXX_Organ
 ORGAN_LIST = ['Task03_Liver', 'Task06_Lung', 'Task07_Pancreas', 'Task08_HepaticVessel', 'Task09_Spleen', 'Task10_Colon']
-ORGAN = ORGAN_LIST[0]
+ORGAN = ORGAN_LIST[4]
 
 # Training dataset for UNet
 TRAIN_DATA_LIST = ['all', 'n_random', 'n_worst']

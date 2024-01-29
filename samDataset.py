@@ -6,6 +6,7 @@ import math
 import numpy as np
 import pickle
 from scipy.ndimage import center_of_mass
+from scipy import ndimage
 
 from monai.data import DataLoader, Dataset, CacheDataset
 
@@ -109,6 +110,26 @@ def averaged_center_of_mass(loader):
 
 	return (avg_0, avg_1)
 
+
+def compute_center_of_mass(binary_mask):
+	'''
+	Return a list of centers of masses for an image,
+	each cluster has an individual cm.
+	'''
+
+	labeled_array, num_features = ndimage.label(binary_mask)
+	center_of_mass_list = []
+
+	for label in range(1, num_features + 1):
+		# Extract each labeled object
+		labeled_object = np.where(labeled_array == label, 1, 0)
+
+		# Compute center of mass for the labeled object
+		center_of_mass = ndimage.center_of_mass(labeled_object)
+
+		center_of_mass_list.append(center_of_mass)
+
+	return center_of_mass_list
 
 
 def get_loader(organ, split='train'):

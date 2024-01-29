@@ -10,7 +10,13 @@ import numpy as np
 import pickle
 import torch
 from PIL import Image
-from samDataset import get_loader, get_point_prompt, center_of_mass_from_3d, averaged_center_of_mass
+from samDataset import (
+    get_loader,
+    get_point_prompt,
+    center_of_mass_from_3d,
+    averaged_center_of_mass,
+    compute_center_of_mass
+)
 from torchmetrics.functional.classification import dice
 from transformers import SamModel, SamProcessor
 
@@ -27,7 +33,7 @@ from utils.utils import (
 import config
 
 # create directories for saving plots
-split = 'train' # train, val, test
+split = 'test' # train, val, test
 all_plots_path = config.SAM_OUTPUT_PATH + split + '_images/' + 'all/'
 best_plots_path = config.SAM_OUTPUT_PATH + split + '_images/' + 'top_best/'
 worst_plots_path = config.SAM_OUTPUT_PATH + split + '_images/' + 'top_worst/'
@@ -75,20 +81,41 @@ def predict_masks(loader, predictor):
             predictor.set_image(color_img)
 
             # get point prompt - individual for each img
-            prompt = get_point_prompt(ground_truth_mask)
-            input_point = np.array([[prompt[1], prompt[0]]])
-            input_label = np.array([1])
+            #prompt = get_point_prompt(ground_truth_mask)
+            #input_point = np.array([[prompt[1], prompt[0]]])
+            #input_label = np.array([1])
 
-            # get predicted masks
-            masks, scores, logits = predictor.predict(
-                point_coords=input_point,
-                point_labels=input_label,
-                multimask_output=True,
-            )
+            # get list of point prompts - one for each cluster
+            center_of_mass_list = compute_center_of_mass(ground_truth_mask)
 
-            # CHOOSE THE FIRST MASK FROM MULTIMASK OUTPUT 
-            mask = masks[0]
-            score = scores[0]
+            #initialize mask array 
+            mask = np.full(ground_truth_mask.shape, False, dtype=bool)
+            # initialize lists for input poitns and labels for plotting
+            input_points = []
+            input_labels = []
+
+            #loop through centers of mass, get sam's predictions for all and construct the final mask
+            for i, center_of_mass in enumerate(center_of_mass_list):
+                print(f"Center of mass for object {i + 1}: {center_of_mass}")
+                input_point = np.array([[round(center_of_mass[1]), round(center_of_mass[0])]])
+                input_label =  np.array([1])
+                input_points.append(input_point)
+                input_labels.append(input_label)
+            
+                # get predicted masks
+                masks, scores, logits = predictor.predict(
+                    point_coords=input_point,
+                    point_labels=input_label,
+                    multimask_output=True,
+                )
+
+                # CHOOSE THE FIRST MASK FROM MULTIMASK OUTPUT 
+                cluster_mask = masks[0]
+
+                # add cluster to final mask
+                mask = mask | cluster_mask 
+
+
 
             #print(f'Image {step+1}, mask {i+1}:')
             # evaluate with dice score
@@ -107,7 +134,7 @@ def predict_masks(loader, predictor):
             print('dice utils: ', dice_utils)
 
             plt.figure(figsize=(12, 4))
-            plt.suptitle(f"{name[0]}, Score: {score:.3f}, Dice: {dice_pytorch:.3f}", fontsize=14)
+            plt.suptitle(f"{name[0]}, Dice: {dice_pytorch:.3f}", fontsize=14)
             plt.subplot(1, 3, 1)
             plt.imshow(color_img, cmap="gray")
             plt.axis("off")
@@ -118,7 +145,8 @@ def predict_masks(loader, predictor):
             plt.subplot(1, 3, 3)
             plt.imshow(image_orig, cmap="gray")
             show_mask(mask, plt.gca())
-            show_points(input_point, input_label, plt.gca())
+            for input_point, input_label in zip(input_points, input_labels):
+                show_points(input_point, input_label, plt.gca())
             plt.axis("off")
             plt.tight_layout()
             plt.savefig(f'{all_plots_path}sam_{name[0]}.png')
