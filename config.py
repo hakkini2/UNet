@@ -10,13 +10,15 @@ N_TEST_SAMPLES = 10   # How many top/worst test plots are saved
 #organ to train/test on
 # NOTE: THE FORMAT TaskXX_Organ
 ORGAN_LIST = ['Task03_Liver', 'Task06_Lung', 'Task07_Pancreas', 'Task08_HepaticVessel', 'Task09_Spleen', 'Task10_Colon']
-ORGAN = ORGAN_LIST[4]
+ORGAN = ORGAN_LIST[0]
 
 # Training dataset for UNet
 TRAIN_DATA_LIST = ['all', 'n_random', 'n_worst']
 TRAIN_DATA = TRAIN_DATA_LIST[0]
 N_TRAIN_SAMPLES = 1000
 
+# Use pseudo labels as ground truth masks for Unet training
+USE_PSEUDO_LABELS = True
 
 # path to dataset
 DATASET_PATH_3D = '/l/ComputerVision/CLIP-and-SwinUNETR/Swin-UNETR-with-MSD/data/'
@@ -53,7 +55,7 @@ NUM_LEVELS = 3
 # initialize learning rate, number of epochs to train for, and the
 # batch size
 INIT_LR = 0.0005
-NUM_EPOCHS = 24
+NUM_EPOCHS = 100
 if IMG_FORMAT == '2d':
     BATCH_SIZE = 2
 else:

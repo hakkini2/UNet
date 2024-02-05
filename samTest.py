@@ -33,7 +33,7 @@ from utils.utils import (
 import config
 
 # create directories for saving plots
-split = 'test' # train, val, test
+split = 'train' # train, val, test
 all_plots_path = config.SAM_OUTPUT_PATH + split + '_images/' + 'all/'
 best_plots_path = config.SAM_OUTPUT_PATH + split + '_images/' + 'top_best/'
 worst_plots_path = config.SAM_OUTPUT_PATH + split + '_images/' + 'top_worst/'
@@ -52,7 +52,7 @@ def main():
     model.to(config.DEVICE)
     predictor = SamPredictor(model)
 
-    # get dataloader containing half of the training images
+    # get dataloader
     loader = get_loader(organ=config.ORGAN, split=split)
     # get trainloader to get the same point prompt
     #train_loader = get_loader(organ=config.ORGAN, split='train')

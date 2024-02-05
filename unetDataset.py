@@ -164,8 +164,12 @@ def getLoader2d(split, organ):
 		print('Training with training dataset set to: ', config.TRAIN_DATA)
 		print('Organ: ', organ)
 
-	# data dicts for testing, validation and training with all images
-	if split != 'train' or config.TRAIN_DATA == 'all':
+	if config.USE_PSEUDO_LABELS:
+		if split != 'train':
+			raise ValueError('split must be set to train when using pseudolabels from SAM.')
+		data_dicts = getDataPathsPseudoLabels(organ=organ)
+	# data dicts for testing, validation and training with all images (real mask data)
+	elif split != 'train' or config.TRAIN_DATA == 'all':
 		data_dicts = getDataPaths2d(split=split, organ=organ)
 
 	# data dicts for training with N random images
@@ -347,3 +351,37 @@ def getDataPaths2dNWorst(split, organ):
 	return matches
 
 
+def getDataPathsPseudoLabels(organ):
+	'''
+	Input:
+		organ - target organ in the format 'TaskXX_Organ', e.g. 'Task03_Liver'
+	Returns:
+		a data dict of all the training data for the specified organ,
+		but the real ground truth masks are replaced with SAM's predicted masks.
+	'''
+	# reformat organ for 2D case
+	organ = organ.split('_')[1].lower()
+
+	img_dir = os.path.join(config.DATASET_PATH_2D, "train_2d_images")
+	lbl_dir = os.path.join(config.DATASET_PATH_2D, "train_2d_pseudomasks")
+
+	img_fnames = []
+	names = []
+	for f in os.listdir(img_dir):
+		task = f.split('_')[0]
+		
+		if task == organ and os.path.isfile(os.path.join(img_dir, f)):
+			img_fnames.append(os.path.join(img_dir, f))
+			names.append(f.split('.')[0])
+
+	lbl_fnames = []
+	for f in os.listdir(lbl_dir):
+		task = f.split('_')[0]
+		if task == organ and os.path.isfile(os.path.join(lbl_dir, f)):
+			lbl_fnames.append(os.path.join(lbl_dir, f))
+
+	data = [{"image": img_fname, "label": lbl_fname, "name": name} for img_fname, lbl_fname, name in zip(img_fnames, lbl_fnames, names)]
+	
+	print(f'train len {format(len(data))}')
+
+	return data
