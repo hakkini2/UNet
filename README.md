@@ -13,10 +13,16 @@ If using 2D data, in *config.py*, the variable **IMG_FORMAT** must be set to *'2
 
 The training data to be used is defined in *config.py* with variables **TRAIN_DATA** and **N_TRAIN_SAMPLES**. The value for **TRAIN_DATA** is chosen from the list **TRAIN_DATA_LIST = ['all', 'n_random', 'n_worst']**, which contains three options: using all training images, using N random images or N worst performing training images (ranked by SAM inference with point prompt). The variable **N_TRAIN_SAMPLES** defines N; how many training images are included in N worst or N random.
 
-Training is then simply done by ```python3 train.py```
+Training is then simply done by ```python3 unetTrain.py```
+
+### Using SAM's pseudo labels for training UNet
+
+To save SAM's predictions as pseudo masks under *content/train_2d_pseudomasks/*, the file *sam-pseudo-labels.py* must be run for the train split of the appropriate organ (organ defined in *config.py* with **ORGAN**).
+
+Then, with variable **USE_PSEUDO_LABELS** set as **True** in *config.py*, UNet can be trained using pseudo labels instead of real ground truth data by running *unetTrain.py* for the appropriate organ.
 
 #### Testing
 
 When testing pretrained models (saved in *output/unet/pretrained*), the model to be trained needs to be specified with an argument ```--checkpoint_name```, e.g.:
 
-```python3 test.py --checkpoint_name 'unet_task03_liver_1000_random_2D.pth'```
+```python3 unetTest.py --checkpoint_name 'unet_task03_liver_1000_random_2D.pth'```
