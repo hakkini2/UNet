@@ -164,9 +164,7 @@ def getLoader2d(split, organ):
 		print('Training with training dataset set to: ', config.TRAIN_DATA)
 		print('Organ: ', organ)
 
-	if config.USE_PSEUDO_LABELS:
-		if split != 'train':
-			raise ValueError('split must be set to train when using pseudolabels from SAM.')
+	if split=='train' and config.USE_PSEUDO_LABELS:
 		data_dicts = getDataPathsPseudoLabels(organ=organ)
 	# data dicts for testing, validation and training with all images (real mask data)
 	elif split != 'train' or config.TRAIN_DATA == 'all':
@@ -359,6 +357,7 @@ def getDataPathsPseudoLabels(organ):
 		a data dict of all the training data for the specified organ,
 		but the real ground truth masks are replaced with SAM's predicted masks.
 	'''
+	print('Using pseudomasks for organ', organ)
 	# reformat organ for 2D case
 	organ = organ.split('_')[1].lower()
 

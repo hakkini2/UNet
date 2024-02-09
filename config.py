@@ -17,7 +17,7 @@ TRAIN_DATA_LIST = ['all', 'n_random', 'n_worst']
 TRAIN_DATA = TRAIN_DATA_LIST[0]
 N_TRAIN_SAMPLES = 1000
 
-# Use pseudo labels as ground truth masks for Unet training
+# Use pseudo labels as ground truth masks for UNet training
 USE_PSEUDO_LABELS = True
 
 # path to dataset
@@ -55,7 +55,7 @@ NUM_LEVELS = 3
 # initialize learning rate, number of epochs to train for, and the
 # batch size
 INIT_LR = 0.0005
-NUM_EPOCHS = 100
+NUM_EPOCHS = 24
 if IMG_FORMAT == '2d':
     BATCH_SIZE = 2
 else:

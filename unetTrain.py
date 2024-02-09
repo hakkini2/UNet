@@ -56,6 +56,7 @@ def train(trainLoader, valLoader, model, optimizer, lossFunc, img_format):
 
         # loop through the training set
         train_loop = tqdm(trainLoader, desc='Batch')
+
         for step, batch in enumerate(train_loop):
             train_loop.set_description(f"Batch {step+1}")
 
@@ -154,8 +155,12 @@ def train(trainLoader, valLoader, model, optimizer, lossFunc, img_format):
             plot_text = f'{config.N_TRAIN_SAMPLES} {train_data[1]} train images'
             fname_text = f'{config.N_TRAIN_SAMPLES}_{train_data[1]}'
         else:
-            plot_text = f'{config.TRAIN_DATA} train images'
-            fname_text = f'{config.TRAIN_DATA}'
+            if config.USE_PSEUDO_LABELS:
+                plot_text = 'using SAMs pseudo labels'
+                fname_text = 'pseudolabels'
+            else:
+                plot_text = f'{config.TRAIN_DATA} train images'
+                fname_text = f'{config.TRAIN_DATA}'
 
         plotLoss(mean_train_losses, mean_val_losses, fig_path=f'{config.SAVED_PLOTS_PATH}loss_{config.ORGAN}_{fname_text}_{img_format}.png',
                 title= f'{config.ORGAN}: {img_format.upper()} Mean Training and Validation Loss, {plot_text}')

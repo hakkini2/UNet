@@ -148,7 +148,10 @@ def saveCheckpoint(state):
             train_data = config.TRAIN_DATA.split('_')
             train_data_text = f'{config.N_TRAIN_SAMPLES}_{train_data[1]}'
         else:
-            train_data_text = f'{config.TRAIN_DATA}'
+            if config.USE_PSEUDO_LABELS:
+                train_data_text = 'pseudolabels'
+            else:
+                train_data_text = f'{config.TRAIN_DATA}'
         fname = f'unet_{config.ORGAN.lower()}_{train_data_text}_2D.pth'
     if config.IMG_FORMAT == '3d':
         fname = f'unet_{config.ORGAN.lower()}_3D.pth'

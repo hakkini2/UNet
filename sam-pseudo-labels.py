@@ -117,11 +117,8 @@ def predict_masks(loader, predictor):
             dices.append((name[0], dice_pytorch))
 
             # -- Save pseudomask --
-            # modify mask dimensions and datatype
-            mask = np.expand_dims(mask, axis=0)
-            mask = np.expand_dims(mask, axis=0)
+            # modify mask datatype
             mask = mask.astype(np.float32)
-
             # save
             mask_img = nib.Nifti1Image(mask, affine=np.eye(4))
             nib.save(mask_img, f'{pseudo_masks_path}{name[0]}.nii')
