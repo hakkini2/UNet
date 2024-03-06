@@ -29,7 +29,7 @@ from utils.utils import calculate_dice_score
 # create directories for saving test plots
 if config.IMG_FORMAT == '2d':
 	if config.USE_PSEUDO_LABELS:
-		save_path = 'all_pseudomasks/'
+		save_path = config.TEST_OUTPUT_PATH + 'all_pseudomasks/'
 	else:
 		save_path = config.TEST_OUTPUT_PATH + config.TRAIN_DATA + '/'
 if config.IMG_FORMAT == '3d':

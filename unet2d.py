@@ -40,7 +40,7 @@ class UNet2D(Module):
 			self,
 			in_channels = 1,
 			out_channels = 1,
-			features=[16, 32, 64],	# 64,128,256
+			features=[64, 128, 256, 512],	# 64,128,256
 	): 
 		super(UNet2D, self).__init__()
 		self.ups = ModuleList()
