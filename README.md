@@ -9,11 +9,11 @@ MSD data is in folder **DATASET_PATH**, defined in *config.py*. The data in this
 
 If using 2D data, in *config.py*, the variable **IMG_FORMAT** must be set to *'2d'*. 2D slices of the original 3D images must be created with the script *create-2d-slices.py*, which creates the train, test and val splits of the 2D images and masks under *content/*. After this, training and testing can be run for the chosen organ, which is defined in *config.py* in variable **ORGAN**. The organ string must follow the pattern *TaskXX_Organ*, for example *Task03_Liver*.
 
-### N worst, N random or all train images (2D)
+<!-- ### N worst, N random or all train images (2D)
 
 The training data to be used is defined in *config.py* with variables **TRAIN_DATA** and **N_TRAIN_SAMPLES**. The value for **TRAIN_DATA** is chosen from the list **TRAIN_DATA_LIST = ['all', 'n_random', 'n_worst']**, which contains three options: using all training images, using N random images or N worst performing training images (ranked by SAM inference with point prompt). The variable **N_TRAIN_SAMPLES** defines N; how many training images are included in N worst or N random.
 
-Training is then simply done by ```python3 unetTrain.py```
+Training is then simply done by ```python3 unetTrain.py``` -->
 
 ### Using SAM's pseudo labels for training UNet
 
