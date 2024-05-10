@@ -1,6 +1,4 @@
 __pycache__/
 content/
-output/unet/plots/test_plots/
-output/unet/plots/old_plots/
-output/unet/pretrained/
+output/unet/
 output/sam/

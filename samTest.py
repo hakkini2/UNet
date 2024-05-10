@@ -113,7 +113,7 @@ def predict_masks(loader, predictor):
                 cluster_mask = masks[0]
 
                 # add cluster to final mask
-                mask = mask | cluster_mask 
+                mask = mask | cluster_mask
 
 
 

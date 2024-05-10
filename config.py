@@ -18,7 +18,7 @@ TRAIN_DATA = TRAIN_DATA_LIST[0]
 N_TRAIN_SAMPLES = 1000
 
 # Use pseudo labels as ground truth masks for UNet training
-USE_PSEUDO_LABELS = True
+USE_PSEUDO_LABELS = True   # True/False
 
 # path to dataset
 DATASET_PATH_3D = '/l/ComputerVision/CLIP-and-SwinUNETR/Swin-UNETR-with-MSD/data/'
@@ -55,7 +55,7 @@ NUM_LEVELS = 3
 # initialize learning rate, number of epochs to train for, and the
 # batch size
 INIT_LR = 0.0005
-NUM_EPOCHS = 24
+NUM_EPOCHS = 50
 if IMG_FORMAT == '2d':
     BATCH_SIZE = 2
 else:
