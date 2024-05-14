@@ -21,7 +21,7 @@ N_TRAIN_SAMPLES = 1000
 USE_PSEUDO_LABELS = True   # True/False
 
 # path to dataset
-DATASET_PATH_3D = '/l/ComputerVision/CLIP-and-SwinUNETR/Swin-UNETR-with-MSD/data/'
+DATASET_PATH_3D = '/data2/projects/CLIP-Driven-Universal-Model/data/MSD'
 DATASET_PATH_2D = './content/'
 
 # paths to txt files describing the 3D dataset splits
