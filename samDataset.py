@@ -7,6 +7,7 @@ import numpy as np
 import pickle
 from scipy.ndimage import center_of_mass
 from scipy import ndimage
+import scipy.ndimage as ndi
 
 from monai.data import DataLoader, Dataset, CacheDataset
 
@@ -130,6 +131,34 @@ def compute_center_of_mass(binary_mask):
 		center_of_mass_list.append(center_of_mass)
 
 	return center_of_mass_list
+
+
+def compute_bounding_boxes(mask_slice):
+    labeled_mask, num_features = ndi.label(mask_slice)
+    bounding_boxes = []
+    for region in range(1, num_features + 1):
+        where = np.where(labeled_mask == region)
+        x_min, x_max = np.min(where[1]), np.max(where[1])
+        y_min, y_max = np.min(where[0]), np.max(where[0])
+        
+        #x_min = max(0, x_min - np.random.randint(0, perturb_px))
+        #x_max = min(w, x_max + np.random.randint(0, perturb_px))
+        #y_min = max(0, y_min - np.random.randint(0, perturb_px))
+        #y_max = min(h, y_max + np.random.randint(0, perturb_px))
+        
+        bounding_boxes.append([x_min, y_min, x_max, y_max])
+        '''
+        min_row, max_row = np.min(where[0]), np.max(where[0])
+        min_col, max_col = np.min(where[1]), np.max(where[1])
+        
+        # add perturbation to bounding box coordinates
+        min_row = float(max(0, min_row - np.random.randint(0, perturb_px)))
+        max_row = float(min(w, max_row + np.random.randint(0, perturb_px)))
+        min_col = float(max(0, min_col - np.random.randint(0, perturb_px)))
+        max_col = float(min(h, max_col + np.random.randint(0, perturb_px)))
+        bounding_boxes.append([min_row, min_col, max_row, max_col])
+        '''
+    return bounding_boxes
 
 
 def get_loader(organ, split='train'):

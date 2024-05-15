@@ -33,11 +33,13 @@ from utils.utils import (
 import config
 
 # create directories for saving plots
-split = 'train' # train, val, test
-all_plots_path = config.SAM_OUTPUT_PATH + split + '_images/' + 'all/'
-best_plots_path = config.SAM_OUTPUT_PATH + split + '_images/' + 'top_best/'
-worst_plots_path = config.SAM_OUTPUT_PATH + split + '_images/' + 'top_worst/'
-dices_path = config.SAM_OUTPUT_PATH + split + '_images/' + 'dices/'
+split = 'test' # train, val, test
+output_base_path = config.SAM_OUTPUT_PATH + config.SAM_PROMPT + '_prompt/' + split + '_images/'
+all_plots_path = output_base_path + 'all/'
+best_plots_path = output_base_path + 'top_best/'
+worst_plots_path = output_base_path + 'top_worst/'
+dices_path = output_base_path + 'dices/'
+Path(output_base_path).mkdir(parents=True, exist_ok=True)
 Path(all_plots_path).mkdir(parents=True, exist_ok=True)
 Path(best_plots_path).mkdir(parents=True, exist_ok=True)
 Path(worst_plots_path).mkdir(parents=True, exist_ok=True)
@@ -80,40 +82,46 @@ def predict_masks(loader, predictor):
             # process image to get image embedding
             predictor.set_image(color_img)
 
-            # get point prompt - individual for each img
-            #prompt = get_point_prompt(ground_truth_mask)
-            #input_point = np.array([[prompt[1], prompt[0]]])
-            #input_label = np.array([1])
 
-            # get list of point prompts - one for each cluster
-            center_of_mass_list = compute_center_of_mass(ground_truth_mask)
+            # Predict using point prompts
+            if config.SAM_PROMPT == 'point':
+                # get point prompt - individual for each img
+                #prompt = get_point_prompt(ground_truth_mask)
+                #input_point = np.array([[prompt[1], prompt[0]]])
+                #input_label = np.array([1])
 
-            #initialize mask array 
-            mask = np.full(ground_truth_mask.shape, False, dtype=bool)
-            # initialize lists for input poitns and labels for plotting
-            input_points = []
-            input_labels = []
+                # get list of point prompts - one for each cluster
+                center_of_mass_list = compute_center_of_mass(ground_truth_mask)
 
-            #loop through centers of mass, get sam's predictions for all and construct the final mask
-            for i, center_of_mass in enumerate(center_of_mass_list):
-                print(f"Center of mass for object {i + 1}: {center_of_mass}")
-                input_point = np.array([[round(center_of_mass[1]), round(center_of_mass[0])]])
-                input_label =  np.array([1])
-                input_points.append(input_point)
-                input_labels.append(input_label)
+                #initialize mask array 
+                mask = np.full(ground_truth_mask.shape, False, dtype=bool)
+                # initialize lists for input poitns and labels for plotting
+                input_points = []
+                input_labels = []
+
+                #loop through centers of mass, get sam's predictions for all and construct the final mask
+                for i, center_of_mass in enumerate(center_of_mass_list):
+                    print(f"Center of mass for object {i + 1}: {center_of_mass}")
+                    input_point = np.array([[round(center_of_mass[1]), round(center_of_mass[0])]])
+                    input_label =  np.array([1])
+                    input_points.append(input_point)
+                    input_labels.append(input_label)
+                
+                    # get predicted masks
+                    masks, scores, logits = predictor.predict(
+                        point_coords=input_point,
+                        point_labels=input_label,
+                        multimask_output=True,
+                    )
+
+                    # CHOOSE THE FIRST MASK FROM MULTIMASK OUTPUT 
+                    cluster_mask = masks[0]
+
+                    # add cluster to final mask
+                    mask = mask | cluster_mask
             
-                # get predicted masks
-                masks, scores, logits = predictor.predict(
-                    point_coords=input_point,
-                    point_labels=input_label,
-                    multimask_output=True,
-                )
-
-                # CHOOSE THE FIRST MASK FROM MULTIMASK OUTPUT 
-                cluster_mask = masks[0]
-
-                # add cluster to final mask
-                mask = mask | cluster_mask
+            
+            #Predict using bounding box
 
 
 
@@ -172,7 +180,7 @@ def predict_masks(loader, predictor):
         # draw a histogram of dice scores
         plt.hist([dice_info[1].item() for dice_info in dices], bins=20)
         plt.title(f'SAM: {config.ORGAN} dice histogram, avg: {avg:.3f}')
-        plt.savefig(f'{config.SAM_OUTPUT_PATH}{split}_images/{config.ORGAN}_dice_histogram.png')
+        plt.savefig(f'{output_base_path}{config.ORGAN}_dice_histogram.png')
         plt.close()
 
         return dices
