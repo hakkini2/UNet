@@ -10,7 +10,7 @@ N_TEST_SAMPLES = 10   # How many top/worst test plots are saved
 #organ to train/test on
 # NOTE: THE FORMAT TaskXX_Organ
 ORGAN_LIST = ['Task03_Liver', 'Task06_Lung', 'Task07_Pancreas', 'Task08_HepaticVessel', 'Task09_Spleen', 'Task10_Colon']
-ORGAN = ORGAN_LIST[4]
+ORGAN = ORGAN_LIST[1]
 
 # Training dataset for UNet
 TRAIN_DATA_LIST = ['all', 'n_random', 'n_worst']
@@ -22,7 +22,7 @@ USE_PSEUDO_LABELS = False   # True/False
 
 # SAM prompt type
 SAM_PROMPTS_LIST = ['point', 'box']
-SAM_PROMPT = SAM_PROMPTS_LIST[0]
+SAM_PROMPT = SAM_PROMPTS_LIST[1]
 
 # path to dataset
 DATASET_PATH_3D = '/l/ComputerVision/CLIP-and-SwinUNETR/Swin-UNETR-with-MSD/data/'

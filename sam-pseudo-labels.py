@@ -39,7 +39,7 @@ import config
 # create directory for saving the pseudomasks
 split = 'train'
 pseudo_masks_path = config.DATASET_PATH_2D + split + '_2d_pseudomasks/'
-histograms_path = config.SAM_OUTPUT_PATH + split + '_pseudomask_histograms/'
+histograms_path = config.SAM_OUTPUT_PATH + config.SAM_PROMPT + '_prompt/' + split + '_pseudomask_histograms/'
 Path(pseudo_masks_path).mkdir(parents=True, exist_ok=True)
 Path(histograms_path).mkdir(parents=True, exist_ok=True)
 

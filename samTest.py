@@ -15,7 +15,8 @@ from samDataset import (
     get_point_prompt,
     center_of_mass_from_3d,
     averaged_center_of_mass,
-    compute_center_of_mass
+    compute_center_of_mass,
+    compute_bounding_boxes
 )
 from torchmetrics.functional.classification import dice
 from transformers import SamModel, SamProcessor
@@ -67,6 +68,8 @@ def main():
 
 
 def predict_masks(loader, predictor):
+    print(f'Predictions using {config.SAM_PROMPT} prompts')
+
     dices = []
     with torch.no_grad():
         for step, item in enumerate(loader):
@@ -120,8 +123,37 @@ def predict_masks(loader, predictor):
                     # add cluster to final mask
                     mask = mask | cluster_mask
             
-            
-            #Predict using bounding box
+
+
+            # Predict using bounding box
+            if config.SAM_PROMPT == 'box':
+                #get a list of bounding boxes - one for each cluster
+                box_prompt_list = compute_bounding_boxes(ground_truth_mask)
+
+                #initialize mask array 
+                mask = np.full(ground_truth_mask.shape, False, dtype=bool)
+                # initialize lists for input boxes for plotting
+                input_boxes = []
+
+                #loop through clusters, get sam's predictions for all and construct the final mask
+                for i, box_prompt in enumerate(box_prompt_list):
+                    print(f'Bounding box for cluster {i+1}: bottom: ({box_prompt[0]}, {box_prompt[1]}), top: ({box_prompt[2]}, {box_prompt[3]})')
+
+                    #create input pormpt
+                    input_box = np.array(box_prompt)
+                    input_boxes.append(input_box)
+
+                    # get predicted masks
+                    cluster_mask, scores, logits = predictor.predict(
+                        point_coords=None,
+                        point_labels=None,
+                        box=input_box[None, :],
+                        multimask_output=False,
+                    )
+
+                    #add cluster to final mask
+                    mask = mask | cluster_mask
+
 
 
 
@@ -141,6 +173,7 @@ def predict_masks(loader, predictor):
             print('dice pytorch: ', dice_pytorch)
             print('dice utils: ', dice_utils)
 
+            #Plot image, ground truth, and prediction
             plt.figure(figsize=(12, 4))
             plt.suptitle(f"{name[0]}, Dice: {dice_pytorch:.3f}", fontsize=14)
             plt.subplot(1, 3, 1)
@@ -153,8 +186,14 @@ def predict_masks(loader, predictor):
             plt.subplot(1, 3, 3)
             plt.imshow(image_orig, cmap="gray")
             show_mask(mask, plt.gca())
-            for input_point, input_label in zip(input_points, input_labels):
-                show_points(input_point, input_label, plt.gca())
+
+            if config.SAM_PROMPT == 'point':
+                for input_point, input_label in zip(input_points, input_labels):
+                    show_points(input_point, input_label, plt.gca())
+            if config.SAM_PROMPT == 'box':
+                for input_box in input_boxes:
+                    show_box(input_box, plt.gca())
+
             plt.axis("off")
             plt.tight_layout()
             plt.savefig(f'{all_plots_path}sam_{name[0]}.png')
