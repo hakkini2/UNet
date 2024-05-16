@@ -104,7 +104,7 @@ def predict_masks(loader, predictor):
 
                 #loop through centers of mass, get sam's predictions for all and construct the final mask
                 for i, center_of_mass in enumerate(center_of_mass_list):
-                    print(f"Center of mass for object {i + 1}: {center_of_mass}")
+                    #print(f"Center of mass for object {i + 1}: {center_of_mass}")
                     input_point = np.array([[round(center_of_mass[1]), round(center_of_mass[0])]])
                     input_label =  np.array([1])
                     input_points.append(input_point)
@@ -137,9 +137,9 @@ def predict_masks(loader, predictor):
 
                 #loop through clusters, get sam's predictions for all and construct the final mask
                 for i, box_prompt in enumerate(box_prompt_list):
-                    print(f'Bounding box for cluster {i+1}: bottom: ({box_prompt[0]}, {box_prompt[1]}), top: ({box_prompt[2]}, {box_prompt[3]})')
+                    #print(f'Bounding box for cluster {i+1}: bottom: ({box_prompt[0]}, {box_prompt[1]}), top: ({box_prompt[2]}, {box_prompt[3]})')
 
-                    #create input pormpt
+                    #create input prompt
                     input_box = np.array(box_prompt)
                     input_boxes.append(input_box)
 
