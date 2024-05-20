@@ -29,7 +29,7 @@ from utils.utils import calculate_dice_score
 # create directories for saving test plots
 if config.IMG_FORMAT == '2d':
 	if config.USE_PSEUDO_LABELS:
-		save_path = config.TEST_OUTPUT_PATH + 'all_pseudomasks/'
+		save_path = config.TEST_OUTPUT_PATH + config.SAM_PROMPT + '_pseudomasks/'
 	else:
 		save_path = config.TEST_OUTPUT_PATH + config.TRAIN_DATA + '/'
 if config.IMG_FORMAT == '3d':
@@ -158,10 +158,13 @@ def main():
 		train_data = config.TRAIN_DATA.split('_')
 		model_specs = f'{config.N_TRAIN_SAMPLES}_{train_data[1]}'
 	else:
-		model_specs = f'{config.TRAIN_DATA}'
+		if config.USE_PSEUDO_LABELS:
+			model_specs = f'{config.SAM_PROMPT}_pseudomasks'
+		else:
+			model_specs = f'{config.TRAIN_DATA}'
 
 	plt.hist(dices_data, bins=20)
-	plt.title(f'{config.ORGAN}: {config.IMG_FORMAT} test dice avg: {average_dice:1.4f} ({model_specs}, {checkpoint["epoch"]} epochs)')
+	plt.title(f'{config.ORGAN}: test dice avg: {average_dice:1.4f} ({model_specs}, {checkpoint["epoch"]} epochs)')
 	plt.xlabel('Dice')
 	plt.savefig(f'{save_path}/{config.ORGAN.lower()}_test_dice_histogram_{model_specs}_{config.IMG_FORMAT}.png')
 	plt.close()

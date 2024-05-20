@@ -17,12 +17,12 @@ Training is then simply done by ```python3 unetTrain.py``` -->
 
 ### Using SAM's pseudo labels for training UNet
 
-To save SAM's predictions as pseudo masks under *content/train_2d_pseudomasks/*, the file *sam-pseudo-labels.py* must be run for the train split of the appropriate organ (organ defined in *config.py* with **ORGAN**).
+To save SAM's predictions as pseudo masks, the file *sam-pseudo-labels.py* must be run for the train split of the appropriate organ (organ defined in *config.py* with **ORGAN**) and the chosen prompt type (specified in *config.py* with **SAM_PROMPT**, can be 'point' or 'box'). The created pseudo masks are the nsaved  under *content/train_2d_box_pseudomasks/*, or  under *content/train_2d_point_pseudomasks/*, depending on the prompt type.
 
-Then, with variable **USE_PSEUDO_LABELS** set as **True** in *config.py*, UNet can be trained using pseudo labels instead of real ground truth data by running *unetTrain.py* for the appropriate organ.
+Then, with variable **USE_PSEUDO_LABELS** set as **True**, along with the desired prompt type specified in **SAM_PROMPT**, both in *config.py*, UNet can be trained using pseudo labels instead of real ground truth data by running *unetTrain.py* for the appropriate organ.
 
 #### Testing
 
 When testing pretrained models (saved in *output/unet/pretrained*), the model to be trained needs to be specified with an argument ```--checkpoint_name```, e.g.:
 
-```python3 unetTest.py --checkpoint_name 'unet_task03_liver_1000_random_2D.pth'```
+```python3 unetTest.py --checkpoint_name 'unet_task03_liver_box_pseudolabels_2D.pth'```

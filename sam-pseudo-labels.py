@@ -141,10 +141,8 @@ def predict_masks(loader, predictor):
                     #add cluster to final mask
                     mask = mask | cluster_mask
 
-
-
-
-
+            # needed for box prompt
+            mask = np.squeeze(mask)
 
             # evaluate with dice score
             dice_pytorch = dice(torch.Tensor(mask).cpu(), ground_truth_mask.cpu(), ignore_index=0)

@@ -357,12 +357,12 @@ def getDataPathsPseudoLabels(organ):
 		a data dict of all the training data for the specified organ,
 		but the real ground truth masks are replaced with SAM's predicted masks.
 	'''
-	print('Using pseudomasks for organ', organ)
+	print(f'Using {config.SAM_PROMPT} prompt pseudomasks for organ', organ)
 	# reformat organ for 2D case
 	organ = organ.split('_')[1].lower()
 
 	img_dir = os.path.join(config.DATASET_PATH_2D, "train_2d_images")
-	lbl_dir = os.path.join(config.DATASET_PATH_2D, "train_2d_pseudomasks")
+	lbl_dir = os.path.join(config.DATASET_PATH_2D, f"train_2d_{config.SAM_PROMPT}_pseudomasks")
 
 	img_fnames = []
 	names = []
