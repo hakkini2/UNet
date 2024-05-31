@@ -25,6 +25,9 @@ USE_PSEUDO_LABELS = True   # True/False
 SAM_PROMPTS_LIST = ['point', 'box']
 SAM_PROMPT = SAM_PROMPTS_LIST[1]
 
+# IF using perturbation for box prompts
+USE_NOISE_FOR_BOX_PROMPT = False
+SAM_BOX_NOISE_PX = 10
 
 # path to dataset
 DATASET_PATH_3D = '/l/ComputerVision/CLIP-and-SwinUNETR/Swin-UNETR-with-MSD/data/'

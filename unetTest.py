@@ -56,7 +56,7 @@ def test(testLoader, model):
 		img = batch['image'].to(config.DEVICE)
 		lbl = batch['label'].float().to(config.DEVICE)
 		name = batch['name']
-		print(img.shape)
+
 		# get prediction
 		pred = model(img)
 		
@@ -74,8 +74,8 @@ def test(testLoader, model):
 		dice_pytorch = dice(predicted_label.cpu(), lbl.cpu(), ignore_index=0)
 		dice_utils, _, _ = calculate_dice_score(predicted_label.cpu(), lbl.cpu())
 
-		print('dice pytorch: ', dice_pytorch)
-		print('dice utils: ', dice_utils)
+		# print('dice pytorch: ', dice_pytorch)
+		# print('dice utils: ', dice_utils)
 
 
 		# check that different dice scores match

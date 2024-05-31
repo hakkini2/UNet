@@ -166,6 +166,7 @@ def predict_masks(loader, predictor):
             if not np.isclose(dice_pytorch, dice_utils.item()):
                 print("DIFFERENT DICES \n")
                 print(f"i: {step}, name: {name[0]}")
+                print(f'utils: {dice_utils}, pytorch: {dice_pytorch}')
                 break
 
             dices.append((name[0], dice_pytorch))
