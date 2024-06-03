@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import monai
 import cv2
 import numpy as np
+import sys
 import pickle
 import torch
 from PIL import Image
@@ -16,6 +17,8 @@ from samDataset import (
     center_of_mass_from_3d,
     averaged_center_of_mass,
     compute_center_of_mass,
+    compute_center_of_mass_naive,
+    compute_furthest_point_from_edges,
     compute_bounding_boxes
 )
 from torchmetrics.functional.classification import dice
@@ -87,15 +90,24 @@ def predict_masks(loader, predictor):
 
 
             # Predict using point prompts
-            if config.SAM_PROMPT == 'point':
+            if config.SAM_PROMPT == 'point' or config.SAM_PROMPT == 'naive_point' or config.SAM_PROMPT == 'furthest_from_edges_point':
                 # get point prompt - individual for each img
                 #prompt = get_point_prompt(ground_truth_mask)
                 #input_point = np.array([[prompt[1], prompt[0]]])
                 #input_label = np.array([1])
 
                 # get list of point prompts - one for each cluster
-                center_of_mass_list = compute_center_of_mass(ground_truth_mask)
-
+                point_type = config.SAM_PROMPT
+                if point_type == 'naive_point':
+                    center_of_mass_list = compute_center_of_mass_naive(ground_truth_mask) # naive version of CM
+                elif point_type == 'point':
+                    center_of_mass_list = compute_center_of_mass(ground_truth_mask) # CM on background issue fixed
+                elif point_type == 'furthest_from_edges_point':
+                    center_of_mass_list = compute_furthest_point_from_edges(ground_truth_mask) # compute the point on foreground that is furthes from the edges
+                else:
+                    print(f'Value {point_type} for config.SAM_PROMPT not in scope.')
+                    sys.exit(1)
+            
                 #initialize mask array 
                 mask = np.full(ground_truth_mask.shape, False, dtype=bool)
                 # initialize lists for input poitns and labels for plotting
@@ -188,7 +200,7 @@ def predict_masks(loader, predictor):
             plt.imshow(image_orig, cmap="gray")
             show_mask(mask, plt.gca())
 
-            if config.SAM_PROMPT == 'point':
+            if config.SAM_PROMPT == 'point' or config.SAM_PROMPT == 'naive_point' or config.SAM_PROMPT == 'furthest_from_edges_point':
                 for input_point, input_label in zip(input_points, input_labels):
                     show_points(input_point, input_label, plt.gca())
             if config.SAM_PROMPT == 'box':

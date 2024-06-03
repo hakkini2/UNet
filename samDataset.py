@@ -8,6 +8,8 @@ import pickle
 from scipy.ndimage import center_of_mass
 from scipy import ndimage
 import scipy.ndimage as ndi
+from scipy.spatial import distance
+from scipy.ndimage import distance_transform_edt
 
 from monai.data import DataLoader, Dataset, CacheDataset
 
@@ -112,10 +114,13 @@ def averaged_center_of_mass(loader):
 	return (avg_0, avg_1)
 
 
-def compute_center_of_mass(binary_mask):
+def compute_center_of_mass_naive(binary_mask):
 	'''
 	Return a list of centers of masses for an image,
 	each cluster has an individual cm.
+
+	NOTE: Does not account for the cm being outside
+	of the foreground.
 	'''
 
 	labeled_array, num_features = ndimage.label(binary_mask)
@@ -133,7 +138,73 @@ def compute_center_of_mass(binary_mask):
 	return center_of_mass_list
 
 
+def compute_center_of_mass(binary_mask):
+	'''
+	Return a list of centers of masses for an image,
+	each cluster has an individual cm.
+
+	NOTE: If cm is on top of background, choose
+	the closest point belonging to the GT mask.
+	'''
+
+	labeled_array, num_features = ndimage.label(binary_mask)
+	center_of_mass_list = []
+
+	for label in range(1, num_features + 1):
+		# Extract each labeled object
+		labeled_object = np.where(labeled_array == label, 1, 0)
+
+		# Compute center of mass for the labeled object
+		center_of_mass = ndimage.center_of_mass(labeled_object)
+
+		#check if cm is outside of mask, choose closest mask pixel (not the most efficient way)
+		cm_y, cm_x = int(center_of_mass[0]), int(center_of_mass[1])
+
+		if labeled_object[cm_y, cm_x] == 0:
+            # find all foreground points
+			foreground_points = np.column_stack(np.where(labeled_object == 1))
+
+            # compute euclidean distances from the CM to foreground points
+			distances = np.sqrt((foreground_points[:, 0] - cm_y)**2 + (foreground_points[:, 1] - cm_x)**2)
+
+            # find the closest foreground point from the distances
+			min_distance_index = np.argmin(distances)
+			closest_foreground_point = foreground_points[min_distance_index]
+			center_of_mass = tuple(closest_foreground_point)
+		
+		center_of_mass_list.append(center_of_mass)
+
+	return center_of_mass_list
+
+
+def compute_furthest_point_from_edges(binary_mask):
+	'''
+	Return a list of the furthest points from the foreground edges,
+	one for each cluster.
+	'''
+
+	labeled_array, num_features = ndimage.label(binary_mask)
+	center_of_mass_list = []
+
+	for label in range(1, num_features + 1):
+		# Extract each labeled object
+		labeled_object = np.where(labeled_array == label, 1, 0)
+
+		distance_transform = distance_transform_edt(labeled_object)
+
+		center_of_foreground = np.unravel_index(np.argmax(distance_transform), distance_transform.shape)
+
+		center_of_mass_list.append(center_of_foreground)
+
+	return center_of_mass_list
+
+
+
+
 def compute_bounding_boxes(mask_slice):
+	'''
+	Returns a list of bounding boxes, one for each cluster.
+	'''
 	labeled_mask, num_features = ndi.label(mask_slice)
 	bounding_boxes = []
 	for region in range(1, num_features + 1):
