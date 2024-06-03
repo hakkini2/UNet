@@ -104,9 +104,6 @@ def predict_masks(loader, predictor):
                     center_of_mass_list = compute_center_of_mass(ground_truth_mask) # CM on background issue fixed
                 elif point_type == 'furthest_from_edges_point':
                     center_of_mass_list = compute_furthest_point_from_edges(ground_truth_mask) # compute the point on foreground that is furthes from the edges
-                else:
-                    print(f'Value {point_type} for config.SAM_PROMPT not in scope.')
-                    sys.exit(1)
             
                 #initialize mask array 
                 mask = np.full(ground_truth_mask.shape, False, dtype=bool)
