@@ -236,6 +236,15 @@ def compute_bounding_boxes(mask_slice):
 	return bounding_boxes
 
 
+def compute_one_bounding_box(mask_slice):
+	where = np.where(mask_slice == 1)
+	x_min, x_max = np.min(where[1]), np.max(where[1])
+	y_min, y_max = np.min(where[0]), np.max(where[0])
+	
+	return [x_min, y_min, x_max, y_max]
+
+
+
 def get_loader(organ, split='train'):
 	# take the first data split for SAMs maasks
 	data_dicts = get_data_dicts(organ=organ, split=split)

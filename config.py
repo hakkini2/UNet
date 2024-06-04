@@ -9,7 +9,7 @@ N_TEST_SAMPLES = 10   # How many top/worst test plots are saved
 
 #organ to train/test on
 ORGAN_LIST = ['Task03_Liver', 'Task06_Lung', 'Task07_Pancreas', 'Task08_HepaticVessel', 'Task09_Spleen', 'Task10_Colon']
-ORGAN = ORGAN_LIST[3]
+ORGAN = ORGAN_LIST[0]
 
 # Training dataset for UNet
 TRAIN_DATA_LIST = ['all', 'n_random', 'n_worst']
@@ -22,8 +22,8 @@ N_TRAIN_SAMPLES = 1000
 USE_PSEUDO_LABELS = True   # True/False
 
 # SAM prompt type
-SAM_PROMPTS_LIST = ['naive_point', 'point', 'furthest_from_edges_point', 'box', 'box_and_point']
-SAM_PROMPT = SAM_PROMPTS_LIST[2]
+SAM_PROMPTS_LIST = ['naive_point', 'point', 'furthest_from_edges_point', 'box', 'one_box_with_points']
+SAM_PROMPT = SAM_PROMPTS_LIST[4]
 
 # IF using perturbation for box prompts
 USE_NOISE_FOR_BOX_PROMPT = False
