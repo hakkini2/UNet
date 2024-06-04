@@ -12,11 +12,12 @@ import matplotlib.pyplot as plt
 
 # Define paths and dataset-specific parameters
 data_dir = "/data2/projects/iira/UNet/content"  # Change this to your dataset path
-organ = "spleen"  # Example task, change to desired organ task
+organ = "colon"  # Example task, change to desired organ task
 images_dir = os.path.join(data_dir, "test_2d_images")
 labels_dir = os.path.join(data_dir, "test_2d_masks")
 output_dir = f"output_preds/{organ}"  # Change this to your desired output path
 TEST_BATCH_SIZE = 64
+ROI_SIZE = 256
 INTENSITIES = {"lung": (-1024, 5324),
                "colon": (-1024, 13009),
                "spleen": (-1024, 3072),
@@ -55,12 +56,13 @@ model = UNet(
     num_res_units=2,
 ).to(device)
 model.load_state_dict(torch.load(f"{organ}_best_metric_model.pth"))
+#model.load_state_dict(torch.load(f"{organ}_best_metric_model_256_1024.pth"))
 model.eval()
 
 # Inference function
-def infer_and_visualize(test_loader, model, output_dir):
+def infer_and_visualize(test_loader, model, output_dir, roi_size):
     os.makedirs(output_dir, exist_ok=True)
-    roi_size = (96, 96)
+    roi_size = (roi_size, roi_size)
     sw_batch_size = 4
     dice_metric = DiceMetric(include_background=False, reduction="mean")
     with torch.no_grad():
@@ -106,4 +108,4 @@ def infer_and_visualize(test_loader, model, output_dir):
         print(f"The dice score: {metric}")
         
 # Run inference and visualize results
-infer_and_visualize(test_loader, model, output_dir)
+infer_and_visualize(test_loader, model, output_dir, roi_size=ROI_SIZE)
