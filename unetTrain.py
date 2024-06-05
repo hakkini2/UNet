@@ -16,6 +16,7 @@ from tqdm import tqdm
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
+from pathlib import Path
 import time
 import os
 import sys
@@ -31,6 +32,10 @@ from utils.utils import (
 )
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+
+plot_save_path = config.SAVED_PLOTS_PATH + 'train_plots/'
+Path(plot_save_path).mkdir(parents=True, exist_ok=True)
+
 
 def train(trainLoader, valLoader, model, optimizer, lossFunc, img_format):
     print('[INFO] started training the network...')
@@ -64,6 +69,9 @@ def train(trainLoader, valLoader, model, optimizer, lossFunc, img_format):
             img = batch["image"].to(config.DEVICE)
             lbl = batch["label"].float().to(config.DEVICE)
             name = batch['name']
+ 
+            if config.ORGAN in ['Task03_Liver', 'Task07_Pancreas', 'Task08_HepaticVessel']:
+                lbl[lbl==2] = 1
             
             # see the first image crop 
             #if step==0:
@@ -120,6 +128,9 @@ def train(trainLoader, valLoader, model, optimizer, lossFunc, img_format):
                 lbl = batch["label"].float().to(config.DEVICE)
                 name = batch['name']
                 
+                if config.ORGAN in ['Task03_Liver', 'Task07_Pancreas', 'Task08_HepaticVessel']:
+                    lbl[lbl==2] = 1
+                
                 predicted = model(img)
                 loss = lossFunc(predicted, lbl)
                 val_losses.append(loss.item())
@@ -146,7 +157,7 @@ def train(trainLoader, valLoader, model, optimizer, lossFunc, img_format):
 
     # After training, plot mean losses of epochs
     if config.IMG_FORMAT == '3d':
-        plotLoss(mean_train_losses, fig_path=f'{config.SAVED_PLOTS_PATH}loss_{config.ORGAN}_{img_format}.png',
+        plotLoss(mean_train_losses, fig_path=f'{plot_save_path}loss_{config.ORGAN}_{img_format}.png',
                 title= f'{config.ORGAN}: {img_format.upper()} Mean Training and Validation Loss')
 
     if config.IMG_FORMAT == '2d':
@@ -162,7 +173,7 @@ def train(trainLoader, valLoader, model, optimizer, lossFunc, img_format):
                 plot_text = f'{config.TRAIN_DATA} train images'
                 fname_text = f'{config.TRAIN_DATA}'
 
-        plotLoss(mean_train_losses, mean_val_losses, fig_path=f'{config.SAVED_PLOTS_PATH}loss_{config.ORGAN}_{fname_text}_{img_format}.png',
+        plotLoss(mean_train_losses, mean_val_losses, fig_path=f'{plot_save_path}loss_{config.ORGAN}_{fname_text}_{img_format}.png',
                 title= f'{config.ORGAN}: {img_format.upper()} mean training and validation loss, {plot_text}')
     
     

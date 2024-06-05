@@ -57,6 +57,9 @@ def test(testLoader, model):
 		lbl = batch['label'].float().to(config.DEVICE)
 		name = batch['name']
 
+		if config.ORGAN in ['Task03_Liver', 'Task07_Pancreas', 'Task08_HepaticVessel']:
+			lbl[lbl==2] = 1
+
 		# get prediction
 		pred = model(img)
 		
