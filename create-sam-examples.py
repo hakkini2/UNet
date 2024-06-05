@@ -15,7 +15,8 @@ from samDataset import (
     compute_center_of_mass_naive,
     compute_center_of_mass,
     compute_furthest_point_from_edges,
-    compute_bounding_boxes
+    compute_bounding_boxes,
+    compute_boxes_and_points
 )
 from torchmetrics.functional.classification import dice
 from transformers import SamModel, SamProcessor
@@ -40,7 +41,8 @@ Path(output_base_path).mkdir(parents=True, exist_ok=True)
 #specify a specific image:
 use_specific_image = True
 interesting_cases = ['colon_194_62', 'colon_122_24', 'liver_52_121']
-image_name = 'spleen_31_43'
+easy_cases = ['spleen_31_43']
+image_name = interesting_cases[1]
 
 
 def main():
@@ -60,7 +62,7 @@ def main():
 def predict_masks(loader, predictor):
     with torch.no_grad():
         for step, item in enumerate(loader):
-            print(f'Step {step+1}/{len(loader)}')
+            #print(f'Step {step+1}/{len(loader)}')
             image_orig = item['image'].squeeze()
             ground_truth_mask = item['label'].squeeze().to(bool)
             name = item['name']
@@ -96,7 +98,7 @@ def predict_masks(loader, predictor):
             mask_approx_point, input_approx_points, input_approx_labels = get_point_prompt(
                 ground_truth_mask=ground_truth_mask,
                 predictor=predictor,
-                point_type='approx_mask_center'
+                point_type='furthest_from_edges_point'
             )
 
             # BOX PROMPT
@@ -105,17 +107,25 @@ def predict_masks(loader, predictor):
                 predictor=predictor
             )
 
+            # BOX + POINT PROMPT
+            mask_box_and_point, boxpoint_boxes, boxpoint_points, boxpoint_labels = get_box_and_point_prompt_prediction(
+                ground_truth_mask=ground_truth_mask,
+                predictor=predictor
+            )
 
             # evaluate with dice score
             dice_naive_point = dice(torch.Tensor(mask_naive_point).cpu(), ground_truth_mask.cpu(), ignore_index=0)
             dice_point = dice(torch.Tensor(mask_point).cpu(), ground_truth_mask.cpu(), ignore_index=0)
             dice_approx_point = dice(torch.Tensor(mask_approx_point).cpu(), ground_truth_mask.cpu(), ignore_index=0)
             dice_box = dice(torch.Tensor(mask_box).cpu(), ground_truth_mask.cpu(), ignore_index=0)
+            dice_box_and_point = dice(torch.Tensor(mask_box_and_point).cpu(), ground_truth_mask.cpu(), ignore_index=0)
 
             print(f'Dice with naive point prompt: {dice_naive_point:.3f}')
             print(f'Dice with point prompt: {dice_point:.3f}')
             print(f'Dice with point furthest from edges: {dice_approx_point:.3f}')
             print(f'Dice with box prompt: {dice_box:.3f}')
+            print(f'Dice with box and point prompt: {dice_box_and_point:.3f}')
+            
 
             plt.figure(figsize=(12, 8))
             plt.suptitle(f"SAM prompts on {name[0].split('_')[0]}", fontsize=14)
@@ -127,7 +137,7 @@ def predict_masks(loader, predictor):
             plt.axis("off")
             # naive point
             plt.subplot(2, 3, 2)
-            plt.title(f'Naive point prompt (DSC={dice_naive_point:.3f})')
+            plt.title(f'Naive point (CM) (DSC={dice_naive_point:.3f})')
             plt.imshow(image_orig, cmap="gray")
             show_mask(mask_naive_point, plt.gca())
             for input_naive_point, input_naive_label in zip(input_naive_points, input_naive_labels):
@@ -135,7 +145,7 @@ def predict_masks(loader, predictor):
             plt.axis("off")
             # point
             plt.subplot(2, 3, 3)
-            plt.title(f'Point prompt (DSC={dice_point:.3f})')
+            plt.title(f'Point (CM) (DSC={dice_point:.3f})')
             plt.imshow(image_orig, cmap="gray")
             show_mask(mask_point, plt.gca())
             for input_point, input_label in zip(input_points, input_labels):
@@ -151,10 +161,20 @@ def predict_masks(loader, predictor):
             plt.axis("off")
             # box
             plt.subplot(2, 3, 5)
-            plt.title(f'Box prompt (DSC={dice_box:.3f})')
+            plt.title(f'Box (DSC={dice_box:.3f})')
             plt.imshow(image_orig, cmap="gray")
             show_mask(mask_box, plt.gca())
             for input_box in input_boxes:
+                show_box(input_box, plt.gca())
+            plt.axis("off")
+            #box and point, one of each per cluster
+            plt.subplot(2, 3, 6)
+            plt.title(f'Box and point (DSC={dice_box_and_point:.3f})')
+            plt.imshow(image_orig, cmap="gray")
+            show_mask(mask_box_and_point, plt.gca())
+            for point, label in zip(boxpoint_points, boxpoint_labels):
+                show_points(point, label, plt.gca())
+            for input_box in boxpoint_boxes:
                 show_box(input_box, plt.gca())
             plt.axis("off")
             plt.tight_layout()
@@ -170,7 +190,7 @@ def get_point_prompt(ground_truth_mask, predictor, point_type):
         center_of_mass_list = compute_center_of_mass_naive(ground_truth_mask)
     elif point_type == 'point':
         center_of_mass_list = compute_center_of_mass(ground_truth_mask)
-    elif point_type == 'approx_mask_center':
+    elif point_type == 'furthest_from_edges_point':
         center_of_mass_list = compute_furthest_point_from_edges(ground_truth_mask)
 
     mask = np.full(ground_truth_mask.shape, False, dtype=bool)
@@ -223,6 +243,42 @@ def get_box_prompt(ground_truth_mask, predictor):
         mask = mask | cluster_mask
     
     return mask, input_boxes
+
+
+def get_box_and_point_prompt_prediction(ground_truth_mask, predictor):
+    '''
+    Get SAM's prediction using a box and a point per cluster
+    '''
+    box_prompt_list, point_prompt_list = compute_boxes_and_points(ground_truth_mask)
+
+    mask = np.full(ground_truth_mask.shape, False, dtype=bool)
+    input_points = []
+    input_labels = []
+    input_boxes = []
+
+    for i, point_prompt in enumerate(point_prompt_list):
+        #point
+        input_point = np.array([[round(point_prompt[1]), round(point_prompt[0])]])
+        input_label =  np.array([1])
+        input_points.append(input_point)
+        input_labels.append(input_label)
+
+        # box
+        input_box = np.array(box_prompt_list[i])
+        input_boxes.append(input_box)
+    
+        # get predicted mask
+        cluster_mask, scores, logits = predictor.predict(
+            point_coords=input_point,
+            point_labels=input_label,
+            box=input_box,
+            multimask_output=False,
+        )
+
+        # add cluster mask to final mask
+        mask = mask | cluster_mask
+    
+    return mask, input_boxes, input_points, input_labels
 
 
 
