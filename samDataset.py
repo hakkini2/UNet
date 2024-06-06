@@ -184,7 +184,7 @@ def compute_furthest_point_from_edges(binary_mask):
 	'''
 
 	labeled_array, num_features = ndimage.label(binary_mask)
-	center_of_mass_list = []
+	points_list = []
 
 	for label in range(1, num_features + 1):
 		# Extract each labeled object
@@ -192,11 +192,11 @@ def compute_furthest_point_from_edges(binary_mask):
 
 		distance_transform = distance_transform_edt(labeled_object)
 
-		center_of_foreground = np.unravel_index(np.argmax(distance_transform), distance_transform.shape)
+		furthest = np.unravel_index(np.argmax(distance_transform), distance_transform.shape)
 
-		center_of_mass_list.append(center_of_foreground)
+		points_list.append(furthest)
 
-	return center_of_mass_list
+	return points_list
 
 
 
@@ -242,6 +242,70 @@ def compute_one_bounding_box(mask_slice):
 	y_min, y_max = np.min(where[0]), np.max(where[0])
 	
 	return [x_min, y_min, x_max, y_max]
+
+
+def compute_boxes_and_points(mask_slice):
+	'''
+	Computes a bounding box and a point per cluster.
+	'''
+	labeled_mask, num_features = ndi.label(mask_slice)
+	bounding_boxes = []
+	points = []
+
+	for region in range(1, num_features + 1):
+		# bounding box per cluster
+		where = np.where(labeled_mask == region)
+		x_min, x_max = np.min(where[1]), np.max(where[1])
+		y_min, y_max = np.min(where[0]), np.max(where[0])
+		bounding_boxes.append([x_min, y_min, x_max, y_max])
+
+		#point per cluster (furthest form foreground edges)
+		labeled_object = np.where(labeled_mask == region, 1, 0)
+		distance_transform = distance_transform_edt(labeled_object)
+		furthest = np.unravel_index(np.argmax(distance_transform), distance_transform.shape)
+		points.append(furthest)
+	
+	return bounding_boxes, points
+
+
+def compute_boxes_and_background_points(mask_slice):
+	'''
+	Computes a bounding box and a background point per cluster.
+	'''
+	rows, cols = mask_slice.shape
+	radius = 25 # the maximum distance (in pixels) that the point can be from the bounding box edge
+	labeled_mask, num_features = ndi.label(mask_slice)
+	bounding_boxes = []
+	background_points = []
+
+	# loop through clusters
+	for region in range(1, num_features + 1):
+		# BOX
+		where = np.where(labeled_mask == region)
+		x_min, x_max = np.min(where[1]), np.max(where[1])
+		y_min, y_max = np.min(where[0]), np.max(where[0])
+		bounding_boxes.append([x_min, y_min, x_max, y_max])
+
+		#BACKGROUND POINT
+		#make a list of all possible coordinates to choose from that are within a range
+		candidates = []
+		for x in range(x_min - radius, x_max + radius + 1):
+			for y in range(y_min - radius, y_max + radius + 1):
+				if 0 <= x < cols and 0 <= y < rows:
+					if (x < x_min or x > x_max) or (y < y_min or y > y_max):
+						distance_to_box = min(abs(x - x_min), abs(x - x_max), abs(y - y_min), abs(y - y_max))
+						if distance_to_box <= radius:
+							candidates.append((y, x)) 
+		
+		# probably never happens but
+		if not candidates:
+			raise ValueError(f'No valid background points were found from the image within the given radius of {radius} pixels')
+
+		# choose random point
+		background_point = candidates[np.random.randint(len(candidates))]
+		background_points.append(background_point)
+
+	return bounding_boxes, background_points
 
 
 
