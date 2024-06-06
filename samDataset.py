@@ -310,7 +310,6 @@ def compute_boxes_and_background_points(mask_slice):
 
 
 def get_loader(organ, split='train'):
-	# take the first data split for SAMs maasks
 	data_dicts = get_data_dicts(organ=organ, split=split)
 
 	dataset = Dataset(data_dicts, transforms_sam)

@@ -16,7 +16,8 @@ from samDataset import (
     compute_center_of_mass,
     compute_furthest_point_from_edges,
     compute_bounding_boxes,
-    compute_boxes_and_points
+    compute_boxes_and_points,
+    compute_boxes_and_background_points
 )
 from torchmetrics.functional.classification import dice
 from transformers import SamModel, SamProcessor
@@ -108,9 +109,17 @@ def predict_masks(loader, predictor):
             )
 
             # BOX + POINT PROMPT
-            mask_box_and_point, boxpoint_boxes, boxpoint_points, boxpoint_labels = get_box_and_point_prompt_prediction(
+            mask_box_and_point, box_and_point_boxes, box_and_point_points, box_and_point_labels = get_box_and_point_prompt_prediction(
                 ground_truth_mask=ground_truth_mask,
-                predictor=predictor
+                predictor=predictor,
+                background_point=False
+            )
+
+            # BOX + POINT PROMPT
+            mask_box_and_bg_point, box_and_bg_point_boxes, box_and_bg_point_points, box_and_bg_point_labels = get_box_and_point_prompt_prediction(
+                ground_truth_mask=ground_truth_mask,
+                predictor=predictor,
+                background_point=True
             )
 
             # evaluate with dice score
@@ -119,66 +128,78 @@ def predict_masks(loader, predictor):
             dice_approx_point = dice(torch.Tensor(mask_approx_point).cpu(), ground_truth_mask.cpu(), ignore_index=0)
             dice_box = dice(torch.Tensor(mask_box).cpu(), ground_truth_mask.cpu(), ignore_index=0)
             dice_box_and_point = dice(torch.Tensor(mask_box_and_point).cpu(), ground_truth_mask.cpu(), ignore_index=0)
+            dice_box_and_bg_point = dice(torch.Tensor(mask_box_and_bg_point).cpu(), ground_truth_mask.cpu(), ignore_index=0)
 
             print(f'Dice with naive point prompt: {dice_naive_point:.3f}')
             print(f'Dice with point prompt: {dice_point:.3f}')
             print(f'Dice with point furthest from edges: {dice_approx_point:.3f}')
             print(f'Dice with box prompt: {dice_box:.3f}')
             print(f'Dice with box and point prompt: {dice_box_and_point:.3f}')
+            print(f'Dice with box and background point prompt: {dice_box_and_bg_point:.3f}')
             
 
-            plt.figure(figsize=(12, 8))
-            plt.suptitle(f"SAM prompts on {name[0].split('_')[0]}", fontsize=14)
+            plt.figure(figsize=(16, 8))
+            plt.suptitle(f"SAM prompts on {name[0].split('_')[0]}", fontsize=16, weight='bold')
             # ground truth
-            plt.subplot(2, 3, 1)
-            plt.title('Ground truth')
+            plt.subplot(2, 4, 1)
+            plt.title('Ground truth', weight='bold')
             plt.imshow(color_img, cmap="gray")
             plt.imshow(ground_truth_mask.cpu().numpy(), alpha=0.6, cmap="copper")
             plt.axis("off")
             # naive point
-            plt.subplot(2, 3, 2)
-            plt.title(f'Naive point (CM) (DSC={dice_naive_point:.3f})')
+            plt.subplot(2, 4, 2)
+            plt.title(f'Naive point (CM) (DSC={dice_naive_point:.3f})', weight='bold')
             plt.imshow(image_orig, cmap="gray")
             show_mask(mask_naive_point, plt.gca())
             for input_naive_point, input_naive_label in zip(input_naive_points, input_naive_labels):
                 show_points(input_naive_point, input_naive_label, plt.gca())
             plt.axis("off")
             # point
-            plt.subplot(2, 3, 3)
-            plt.title(f'Point (CM) (DSC={dice_point:.3f})')
+            plt.subplot(2, 4, 3)
+            plt.title(f'Point (CM) (DSC={dice_point:.3f})', weight='bold')
             plt.imshow(image_orig, cmap="gray")
             show_mask(mask_point, plt.gca())
             for input_point, input_label in zip(input_points, input_labels):
                 show_points(input_point, input_label, plt.gca())
             plt.axis("off")
             # point furthest from foreground edges
-            plt.subplot(2, 3, 4)
-            plt.title(f'Furthest point from edges (DSC={dice_approx_point:.3f})')
+            plt.subplot(2, 4, 4)
+            plt.title(f'Furthest point from edges (DSC={dice_approx_point:.3f})', weight='bold')
             plt.imshow(image_orig, cmap="gray")
             show_mask(mask_approx_point, plt.gca())
             for input_approx_point, input_approx_label in zip(input_approx_points, input_approx_labels):
                 show_points(input_approx_point, input_approx_label, plt.gca())
             plt.axis("off")
             # box
-            plt.subplot(2, 3, 5)
-            plt.title(f'Box (DSC={dice_box:.3f})')
+            plt.subplot(2, 4, 5)
+            plt.title(f'Box (DSC={dice_box:.3f})', weight='bold')
             plt.imshow(image_orig, cmap="gray")
             show_mask(mask_box, plt.gca())
             for input_box in input_boxes:
                 show_box(input_box, plt.gca())
             plt.axis("off")
             #box and point, one of each per cluster
-            plt.subplot(2, 3, 6)
-            plt.title(f'Box and point (DSC={dice_box_and_point:.3f})')
+            plt.subplot(2, 4, 6)
+            plt.title(f'Box and point (DSC={dice_box_and_point:.3f})', weight='bold')
             plt.imshow(image_orig, cmap="gray")
             show_mask(mask_box_and_point, plt.gca())
-            for point, label in zip(boxpoint_points, boxpoint_labels):
+            for point, label in zip(box_and_point_points, box_and_point_labels):
                 show_points(point, label, plt.gca())
-            for input_box in boxpoint_boxes:
+            for input_box in box_and_point_boxes:
+                show_box(input_box, plt.gca())
+            plt.axis("off")
+            #box and background point, one of each per cluster
+            plt.subplot(2, 4, 7)
+            plt.title(f'Box and background point (DSC={dice_box_and_bg_point:.3f})', weight='bold')
+            plt.imshow(image_orig, cmap="gray")
+            show_mask(mask_box_and_bg_point, plt.gca())
+            for point, label in zip(box_and_bg_point_points, box_and_bg_point_labels):
+                show_points(point, label, plt.gca())
+            for input_box in box_and_bg_point_boxes:
                 show_box(input_box, plt.gca())
             plt.axis("off")
             plt.tight_layout()
-            plt.savefig(f'{output_base_path}{name[0]}.png')
+            plt.savefig(f'{output_base_path}{name[0]}.pdf')
             plt.close()
 
 
@@ -245,11 +266,14 @@ def get_box_prompt(ground_truth_mask, predictor):
     return mask, input_boxes
 
 
-def get_box_and_point_prompt_prediction(ground_truth_mask, predictor):
+def get_box_and_point_prompt_prediction(ground_truth_mask, predictor, background_point=False):
     '''
     Get SAM's prediction using a box and a point per cluster
     '''
-    box_prompt_list, point_prompt_list = compute_boxes_and_points(ground_truth_mask)
+    if background_point:
+        box_prompt_list, point_prompt_list = compute_boxes_and_background_points(ground_truth_mask)
+    else:
+        box_prompt_list, point_prompt_list = compute_boxes_and_points(ground_truth_mask)
 
     mask = np.full(ground_truth_mask.shape, False, dtype=bool)
     input_points = []
@@ -259,7 +283,10 @@ def get_box_and_point_prompt_prediction(ground_truth_mask, predictor):
     for i, point_prompt in enumerate(point_prompt_list):
         #point
         input_point = np.array([[round(point_prompt[1]), round(point_prompt[0])]])
-        input_label =  np.array([1])
+        if background_point:
+            input_label = np.array([0])
+        else:
+            input_label =  np.array([1])
         input_points.append(input_point)
         input_labels.append(input_label)
 
