@@ -201,7 +201,7 @@ def compute_furthest_point_from_edges(binary_mask):
 
 
 
-def compute_bounding_boxes(mask_slice):
+def compute_bounding_boxes(mask_slice, noise):
 	'''
 	Returns a list of bounding boxes, one for each cluster.
 	'''
@@ -213,7 +213,7 @@ def compute_bounding_boxes(mask_slice):
 		y_min, y_max = np.min(where[0]), np.max(where[0])
 
 		# perturbation
-		if config.USE_NOISE_FOR_BOX_PROMPT:
+		if noise:
 			h, w = mask_slice.shape
 			perturb_px = config.SAM_BOX_NOISE_PX
 			x_min = max(0, x_min - np.random.randint(0, perturb_px))

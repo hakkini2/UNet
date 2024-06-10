@@ -35,6 +35,12 @@ from utils.utils import (
     show_box,
     normalize8
 )
+from utils.prompts import (
+	get_point_prompt_prediction,
+	get_box_prompt_prediction,
+	get_box_with_points_prediction,
+	get_box_and_point_prompt_prediction
+)
 import config
 
 # create directory for saving the pseudomasks
@@ -75,71 +81,44 @@ def predict_masks(loader, predictor):
             # process image to get image embedding
             predictor.set_image(color_img)
             
-
-
-            # Predict using point prompt
-            if config.SAM_PROMPT == 'point':
-
-                # get list of point prompts - one for each cluster
-                center_of_mass_list = compute_center_of_mass(ground_truth_mask)
-
-                #initialize mask array 
-                mask = np.full(ground_truth_mask.shape, False, dtype=bool)
-                # initialize lists for input poitns and labels for plotting
-                input_points = []
-                input_labels = []
-
-                #loop through centers of mass, get sam's predictions for all and construct the final mask
-                for i, center_of_mass in enumerate(center_of_mass_list):
-                    print(f"Center of mass for object {i + 1}: {center_of_mass}")
-                    input_point = np.array([[round(center_of_mass[1]), round(center_of_mass[0])]])
-                    input_label =  np.array([1])
-                    input_points.append(input_point)
-                    input_labels.append(input_label)
-                
-                    # get predicted masks
-                    masks, scores, logits = predictor.predict(
-                        point_coords=input_point,
-                        point_labels=input_label,
-                        multimask_output=True,
-                    )
-
-                    # CHOOSE THE FIRST MASK FROM MULTIMASK OUTPUT 
-                    cluster_mask = masks[0]
-
-                    # add cluster to final mask
-                    mask = mask | cluster_mask 
-            
-
+            # Predict using point prompts
+            if config.SAM_PROMPT == 'point' or config.SAM_PROMPT == 'naive_point' or config.SAM_PROMPT == 'furthest_from_edges_point':
+                mask, input_points, input_labels = get_point_prompt_prediction(
+                    ground_truth_mask=ground_truth_mask,
+                    predictor=predictor,
+                    point_type=config.SAM_PROMPT
+                )
 
             # Predict using bounding box
             if config.SAM_PROMPT == 'box':
-                #get a list of bounding boxes - one for each cluster
-                box_prompt_list = compute_bounding_boxes(ground_truth_mask)
+                mask, input_boxes = get_box_prompt_prediction(
+                    ground_truth_mask=ground_truth_mask,
+                    predictor=predictor
+                )
+            
+            # Predict using one bounding box and cluster points
+            if config.SAM_PROMPT == 'one_box_with_points':
+                mask, input_boxes, input_points, input_labels = get_box_with_points_prediction(
+                    ground_truth_mask=ground_truth_mask,
+                    predictor=predictor
+                )
+            
+            # Predict using a box and a point per cluster
+            if config.SAM_PROMPT == 'box_and_point':
+                mask, input_boxes, input_points, input_labels = get_box_and_point_prompt_prediction(
+                    ground_truth_mask=ground_truth_mask,
+                    predictor=predictor,
+                    background_point=False
+                )
+            
+            #Predict using a box and a background point per cluster
+            if config.SAM_PROMPT == 'box_and_background_point':
+                mask, input_boxes, input_points, input_labels = get_box_and_point_prompt_prediction(
+                    ground_truth_mask=ground_truth_mask,
+                    predictor=predictor,
+                    background_point=True
+                )
 
-                #initialize mask array 
-                mask = np.full(ground_truth_mask.shape, False, dtype=bool)
-                # initialize lists for input boxes for plotting
-                input_boxes = []
-
-                #loop through clusters, get sam's predictions for all and construct the final mask
-                for i, box_prompt in enumerate(box_prompt_list):
-                    print(f'Bounding box for cluster {i+1}: bottom: ({box_prompt[0]}, {box_prompt[1]}), top: ({box_prompt[2]}, {box_prompt[3]})')
-
-                    #create input pormpt
-                    input_box = np.array(box_prompt)
-                    input_boxes.append(input_box)
-
-                    # get predicted masks
-                    cluster_mask, scores, logits = predictor.predict(
-                        point_coords=None,
-                        point_labels=None,
-                        box=input_box[None, :],
-                        multimask_output=False,
-                    )
-
-                    #add cluster to final mask
-                    mask = mask | cluster_mask
 
             # needed for box prompt
             mask = np.squeeze(mask)

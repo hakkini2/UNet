@@ -41,9 +41,10 @@ Path(output_base_path).mkdir(parents=True, exist_ok=True)
 
 #specify a specific image:
 use_specific_image = True
-interesting_cases = ['colon_194_62', 'colon_122_24', 'liver_52_121']
+example_cases = ['colon_194_62', 'colon_122_24', 'liver_52_121', 'liver_5_393', 'liver_40_70',
+                 'hepaticvessel_175_36', 'pancreas_246_53', 'pancreas_262_39', 'pancreas_279_45']
 easy_cases = ['spleen_31_43']
-image_name = interesting_cases[1]
+image_name = example_cases[8]
 
 
 def main():
@@ -63,7 +64,7 @@ def main():
 def predict_masks(loader, predictor):
     with torch.no_grad():
         for step, item in enumerate(loader):
-            #print(f'Step {step+1}/{len(loader)}')
+            print(f'Step {step+1}/{len(loader)}')
             image_orig = item['image'].squeeze()
             ground_truth_mask = item['label'].squeeze().to(bool)
             name = item['name']
@@ -105,7 +106,16 @@ def predict_masks(loader, predictor):
             # BOX PROMPT
             mask_box, input_boxes = get_box_prompt(
                 ground_truth_mask=ground_truth_mask,
-                predictor=predictor
+                predictor=predictor,
+                noise=False
+            )
+
+
+            # NOISY BOX PROMPT
+            mask_noisy_box, input_noisy_boxes = get_box_prompt(
+                ground_truth_mask=ground_truth_mask,
+                predictor=predictor,
+                noise=True
             )
 
             # BOX + POINT PROMPT
@@ -127,6 +137,7 @@ def predict_masks(loader, predictor):
             dice_point = dice(torch.Tensor(mask_point).cpu(), ground_truth_mask.cpu(), ignore_index=0)
             dice_approx_point = dice(torch.Tensor(mask_approx_point).cpu(), ground_truth_mask.cpu(), ignore_index=0)
             dice_box = dice(torch.Tensor(mask_box).cpu(), ground_truth_mask.cpu(), ignore_index=0)
+            dice_noisy_box = dice(torch.Tensor(mask_noisy_box).cpu(), ground_truth_mask.cpu(), ignore_index=0)
             dice_box_and_point = dice(torch.Tensor(mask_box_and_point).cpu(), ground_truth_mask.cpu(), ignore_index=0)
             dice_box_and_bg_point = dice(torch.Tensor(mask_box_and_bg_point).cpu(), ground_truth_mask.cpu(), ignore_index=0)
 
@@ -134,6 +145,7 @@ def predict_masks(loader, predictor):
             print(f'Dice with point prompt: {dice_point:.3f}')
             print(f'Dice with point furthest from edges: {dice_approx_point:.3f}')
             print(f'Dice with box prompt: {dice_box:.3f}')
+            print(f'Dice with noisy box prompt: {dice_box:.3f}')
             print(f'Dice with box and point prompt: {dice_box_and_point:.3f}')
             print(f'Dice with box and background point prompt: {dice_box_and_bg_point:.3f}')
             
@@ -178,8 +190,16 @@ def predict_masks(loader, predictor):
             for input_box in input_boxes:
                 show_box(input_box, plt.gca())
             plt.axis("off")
-            #box and point, one of each per cluster
+            # noisy box
             plt.subplot(2, 4, 6)
+            plt.title(f'Nosisy box (DSC={dice_noisy_box:.3f})', weight='bold')
+            plt.imshow(image_orig, cmap="gray")
+            show_mask(mask_noisy_box, plt.gca())
+            for input_box in input_noisy_boxes:
+                show_box(input_box, plt.gca())
+            plt.axis("off")
+            #box and point, one of each per cluster
+            plt.subplot(2, 4, 7)
             plt.title(f'Box and point (DSC={dice_box_and_point:.3f})', weight='bold')
             plt.imshow(image_orig, cmap="gray")
             show_mask(mask_box_and_point, plt.gca())
@@ -189,7 +209,7 @@ def predict_masks(loader, predictor):
                 show_box(input_box, plt.gca())
             plt.axis("off")
             #box and background point, one of each per cluster
-            plt.subplot(2, 4, 7)
+            plt.subplot(2, 4, 8)
             plt.title(f'Box and background point (DSC={dice_box_and_bg_point:.3f})', weight='bold')
             plt.imshow(image_orig, cmap="gray")
             show_mask(mask_box_and_bg_point, plt.gca())
@@ -242,8 +262,8 @@ def get_point_prompt(ground_truth_mask, predictor, point_type):
     return mask, input_points, input_labels
 
 
-def get_box_prompt(ground_truth_mask, predictor):
-    box_prompt_list = compute_bounding_boxes(ground_truth_mask)
+def get_box_prompt(ground_truth_mask, predictor, noise=False):
+    box_prompt_list = compute_bounding_boxes(ground_truth_mask, noise)
     mask = np.full(ground_truth_mask.shape, False, dtype=bool)
     input_boxes = []
 
