@@ -58,6 +58,9 @@ Path(bad_cases_path).mkdir(parents=True, exist_ok=True)
 def get_loaders(type):
 	loaders = []
 	for prompt in config.SAM_PROMPTS_LIST:
+		# just to now get box only
+		# if prompt!='box':
+		# 	continue
 		if prompt=='one_box_with_points':	# exclude
 			continue
 		data_dicts = get_top_images_dict(prompt=prompt, type=type)
@@ -117,8 +120,8 @@ def plot_images(loaders, predictor, type):
 			continue
 		print(f'using prompt:{prompt}')
 
-		plt.figure(figsize=(24, 12))
-		plt.suptitle(f"SAM with {prompt}", fontsize=20, weight='bold')
+		plt.figure(figsize=(24, 8))
+		#plt.suptitle(f"SAM with {prompt}", fontsize=20, weight='bold')
 
 		with torch.no_grad():
 			for step, item in enumerate(loader):
@@ -178,26 +181,21 @@ def plot_images(loaders, predictor, type):
 
 				# make step match matplotlib subplot indices
 				step = step+1
-				
-				#image
-				plt.subplot(3, 6, step)
-				if step==1:
-					plt.title('Input image', weight='bold', fontsize=16, rotation='vertical', x=-0.05, y=0)
-				plt.imshow(color_img, cmap="gray")
-				plt.axis("off")
 
 				# ground truth
-				plt.subplot(3, 6, step+6)
+				plt.subplot(2, 6, step)
 				if step==1:
-					plt.title('Ground truth', weight='bold', fontsize=16, rotation='vertical', x=-0.05, y=0)
+					plt.title('Ground truth', fontsize=16, rotation='vertical', x=-0.05, y=0)
+				
+				plt.text(0.5,1.1,f'{organ.upper()}', weight='bold', fontsize=16, ha='center', va='top',transform=plt.gca().transAxes)
 				plt.imshow(color_img, cmap="gray")
 				plt.imshow(ground_truth_mask.cpu().numpy(), alpha=0.6, cmap="copper")
 				plt.axis("off")
 
 				# prediction
-				plt.subplot(3, 6, step+12)
+				plt.subplot(2, 6, step+6)
 				if step==1:
-					plt.title('SAM', weight='bold', fontsize=16, rotation='vertical', x=-0.05, y=0)
+					plt.title(f'SAM', fontsize=16, rotation='vertical', x=-0.05, y=0)
 				plt.imshow(image_orig, cmap="gray")
 				show_mask(mask, plt.gca())
 
@@ -208,12 +206,14 @@ def plot_images(loaders, predictor, type):
 					for input_box in input_boxes:
 						show_box(input_box, plt.gca())
 				plt.text(
-					0.8,
-					0.8,
+					0.95,
+					0.95,
 					f'DSC={dice_pytorch:.3f}',
 					bbox={'facecolor': 'lightblue', 'pad': 10},
 					fontsize=16,
-					weight='bold'
+					ha='right',
+					va='top',
+					transform=plt.gca().transAxes
 				)
 
 				plt.axis("off")
@@ -223,7 +223,7 @@ def plot_images(loaders, predictor, type):
 		if type=='top_best':
 			plt.savefig(f'{good_cases_path}{prompt}_{type}.pdf')
 		else:
-			plt.savefig(f'{bad_cases_path}{name[0]}.pdf')
+			plt.savefig(f'{bad_cases_path}{prompt}_{type}.pdf')
 		plt.close()
 
 
@@ -234,13 +234,14 @@ def main():
 
 	# get pretrained SAM model
 	model = sam_model_registry['vit_h'](checkpoint=config.SAM_CHECKPOINT_PATH)
-	model.to(config.DEVICE)
+	model.to('cpu')
 	predictor = SamPredictor(model)
 
 	best_loaders = get_loaders(type='top_best')
 	worst_loaders = get_loaders(type='top_worst')
 
 	plot_images(best_loaders, predictor, type='top_best')
+	plot_images(worst_loaders, predictor, type='top_worst')
 
 
 

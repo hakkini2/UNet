@@ -151,16 +151,16 @@ def predict_masks(loader, predictor):
             
 
             plt.figure(figsize=(16, 8))
-            plt.suptitle(f"SAM prompts on {name[0].split('_')[0]}", fontsize=16, weight='bold')
+            plt.suptitle(f"SAM prompts on {name[0].split('_')[0]}", fontsize=20, weight='bold')
             # ground truth
             plt.subplot(2, 4, 1)
-            plt.title('Ground truth', weight='bold')
+            plt.title('Ground truth', fontsize=16)
             plt.imshow(color_img, cmap="gray")
             plt.imshow(ground_truth_mask.cpu().numpy(), alpha=0.6, cmap="copper")
             plt.axis("off")
             # naive point
             plt.subplot(2, 4, 2)
-            plt.title(f'Naive point (CM) (DSC={dice_naive_point:.3f})', weight='bold')
+            plt.title(f'Naive point (CM) (DSC={dice_naive_point:.3f})', fontsize=16)
             plt.imshow(image_orig, cmap="gray")
             show_mask(mask_naive_point, plt.gca())
             for input_naive_point, input_naive_label in zip(input_naive_points, input_naive_labels):
@@ -168,7 +168,7 @@ def predict_masks(loader, predictor):
             plt.axis("off")
             # point
             plt.subplot(2, 4, 3)
-            plt.title(f'Point (CM) (DSC={dice_point:.3f})', weight='bold')
+            plt.title(f'Point (CM) (DSC={dice_point:.3f})', fontsize=16)
             plt.imshow(image_orig, cmap="gray")
             show_mask(mask_point, plt.gca())
             for input_point, input_label in zip(input_points, input_labels):
@@ -176,7 +176,7 @@ def predict_masks(loader, predictor):
             plt.axis("off")
             # point furthest from foreground edges
             plt.subplot(2, 4, 4)
-            plt.title(f'Furthest point from edges (DSC={dice_approx_point:.3f})', weight='bold')
+            plt.title(f'Furthest point from edges (DSC={dice_approx_point:.3f})', fontsize=14)
             plt.imshow(image_orig, cmap="gray")
             show_mask(mask_approx_point, plt.gca())
             for input_approx_point, input_approx_label in zip(input_approx_points, input_approx_labels):
@@ -184,7 +184,7 @@ def predict_masks(loader, predictor):
             plt.axis("off")
             # box
             plt.subplot(2, 4, 5)
-            plt.title(f'Box (DSC={dice_box:.3f})', weight='bold')
+            plt.title(f'Box (DSC={dice_box:.3f})', fontsize=16)
             plt.imshow(image_orig, cmap="gray")
             show_mask(mask_box, plt.gca())
             for input_box in input_boxes:
@@ -192,7 +192,7 @@ def predict_masks(loader, predictor):
             plt.axis("off")
             # noisy box
             plt.subplot(2, 4, 6)
-            plt.title(f'Nosisy box (DSC={dice_noisy_box:.3f})', weight='bold')
+            plt.title(f'Noisy box (DSC={dice_noisy_box:.3f})', fontsize=16)
             plt.imshow(image_orig, cmap="gray")
             show_mask(mask_noisy_box, plt.gca())
             for input_box in input_noisy_boxes:
@@ -200,7 +200,7 @@ def predict_masks(loader, predictor):
             plt.axis("off")
             #box and point, one of each per cluster
             plt.subplot(2, 4, 7)
-            plt.title(f'Box and point (DSC={dice_box_and_point:.3f})', weight='bold')
+            plt.title(f'Box and point (DSC={dice_box_and_point:.3f})', fontsize=16)
             plt.imshow(image_orig, cmap="gray")
             show_mask(mask_box_and_point, plt.gca())
             for point, label in zip(box_and_point_points, box_and_point_labels):
@@ -210,7 +210,7 @@ def predict_masks(loader, predictor):
             plt.axis("off")
             #box and background point, one of each per cluster
             plt.subplot(2, 4, 8)
-            plt.title(f'Box and background point (DSC={dice_box_and_bg_point:.3f})', weight='bold')
+            plt.title(f'Box and background point (DSC={dice_box_and_bg_point:.3f})', fontsize=14)
             plt.imshow(image_orig, cmap="gray")
             show_mask(mask_box_and_bg_point, plt.gca())
             for point, label in zip(box_and_bg_point_points, box_and_bg_point_labels):
