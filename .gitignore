@@ -1,4 +1,3 @@
 __pycache__/
 content/
-output/unet/
-output/sam/
+output/

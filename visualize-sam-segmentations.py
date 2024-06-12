@@ -116,8 +116,10 @@ def plot_images(loaders, predictor, type):
 		loader = loader_item['loader']
 		prompt = loader_item['prompt']
 
-		if prompt == 'one_box_with_points':
+		if prompt not in ['furthest_from_edges_point', 'box_and_background_point']:
 			continue
+		# if prompt == 'one_box_with_points':
+		# 	continue
 		print(f'using prompt:{prompt}')
 
 		plt.figure(figsize=(24, 8))

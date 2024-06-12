@@ -44,7 +44,7 @@ use_specific_image = True
 example_cases = ['colon_194_62', 'colon_122_24', 'liver_52_121', 'liver_5_393', 'liver_40_70',
                  'hepaticvessel_175_36', 'pancreas_246_53', 'pancreas_262_39', 'pancreas_279_45']
 easy_cases = ['spleen_31_43']
-image_name = example_cases[8]
+image_name = example_cases[5]
 
 
 def main():
@@ -52,7 +52,7 @@ def main():
 
     # get pretrained SAM model
     model = sam_model_registry['vit_h'](checkpoint=config.SAM_CHECKPOINT_PATH)
-    model.to(config.DEVICE)
+    model.to('cpu')
     predictor = SamPredictor(model)
 
     loader = get_loader(organ=config.ORGAN, split=split)
