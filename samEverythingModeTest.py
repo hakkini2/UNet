@@ -2,7 +2,6 @@ import argparse
 import shutil
 import tqdm
 from pathlib import Path
-import pickle
 import matplotlib.pyplot as plt
 import monai
 import cv2
@@ -13,39 +12,16 @@ import torch
 from PIL import Image
 from samDataset import (
     get_loader,
-    get_point_prompt,
-    center_of_mass_from_3d,
-    averaged_center_of_mass,
-    compute_center_of_mass,
-    compute_center_of_mass_naive,
-    compute_furthest_point_from_edges,
-    compute_bounding_boxes,
-    compute_one_bounding_box,
-    compute_boxes_and_points,
-    compute_boxes_and_background_points
 )
 from torchmetrics.functional.classification import dice
-from transformers import SamModel, SamProcessor
 
 # imports directly from meta's codebase
 from segment_anything import SamPredictor, sam_model_registry, SamAutomaticMaskGenerator
 
 from utils.utils import (
     calculate_dice_score,
-    show_mask,
-    show_points,
-    show_box,
     show_anns,
     normalize8
-)
-from utils.prompts import (
-	get_point_prompt_prediction,
-	get_box_prompt_prediction,
-	get_box_with_points_prediction,
-	get_box_and_point_prompt_prediction,
-    get_point_prompt,
-    get_point_prompt_prediction_2,
-    get_box_with_points_prediction,
 )
 
 import config
@@ -67,15 +43,12 @@ Path(dices_path).mkdir(parents=True, exist_ok=True)
 def main():
     torch.multiprocessing.set_sharing_strategy("file_system")
 
-    # get pretrained SAM model - directly from Meta
     model = sam_model_registry['vit_h'](checkpoint=config.SAM_CHECKPOINT_PATH)
     model.to(config.DEVICE)
     mask_generator = SamAutomaticMaskGenerator(model)
-
-    # get dataloader
     loader = get_loader(organ=config.ORGAN, split=split)
 
-    # do mask prediction and collect the dice scores
+    # do mask prediction
     predict_masks(loader, mask_generator)
 
 
@@ -162,9 +135,6 @@ def predict_masks(loader, mask_generator):
         plt.title(f'SAM: {config.ORGAN} dice histogram, avg: {avg:.3f}')
         plt.savefig(f'{output_base_path}{config.ORGAN}_dice_histogram.png')
         plt.close()
-
-
-
 
 
 if __name__ == '__main__':
