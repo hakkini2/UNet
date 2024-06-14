@@ -4,8 +4,9 @@ import nibabel as nib
 from tqdm import tqdm
 
 # Define paths and dataset-specific parameters
-data_dir = "/data2/projects/iira/UNet/content/train_2d_images"
-organ = "pancreas"
+#data_dir = "/data2/projects/iira/UNet/content/train_2d_images"
+data_dir = "/data2/projects/iira/UNet/2d_data/train_images"
+organ = "spleen"
 
 # Load file paths
 image_files = sorted([os.path.join(data_dir, f) for f in os.listdir(data_dir) if f.startswith(organ) and f.endswith(".nii.gz")])
