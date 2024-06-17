@@ -302,7 +302,13 @@ def main():
 
         unet_pseudo_labels = UNet2D().to(device)
         checkpoint_name = f'unet_{organ.lower()}_{prompt}_pseudolabels_2D.pth'
-        checkpoint = torch.load(os.path.join('output/unet/pretrained_old/', checkpoint_name))
+
+        # tasks with two fireground labels in ground truth
+        if organ in ['Task03_Liver','Task07_Pancreas', 'Task08_HepaticVessel']:
+            checkpoint = torch.load(os.path.join('output/unet/pretrained/', checkpoint_name))
+        else:
+            checkpoint = torch.load(os.path.join('output/unet/pretrained_old/', checkpoint_name))
+        
         unet_pseudo_labels.load_state_dict(checkpoint['model_state_dict'])
         unet_pseudo_labels_list.append(unet_pseudo_labels)
 
