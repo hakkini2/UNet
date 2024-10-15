@@ -39,16 +39,13 @@ from utils.prompts import (
 	get_point_prompt_prediction,
 	get_box_prompt_prediction,
 	get_box_with_points_prediction,
-	get_box_and_point_prompt_prediction
+	get_box_and_point_prompt_prediction,
+    get_box_then_point_prompt_prediction
 )
 import config
 
-# create directory for saving the pseudomasks
 split = 'train'
-pseudo_masks_path = config.DATASET_PATH_2D + split + '_2d_' + config.SAM_PROMPT + '_pseudomasks/'
-histograms_path = config.SAM_OUTPUT_PATH + config.SAM_PROMPT + '_prompt/' + split + '_pseudomask_histograms/'
-Path(pseudo_masks_path).mkdir(parents=True, exist_ok=True)
-Path(histograms_path).mkdir(parents=True, exist_ok=True)
+
 
 def main():
     torch.multiprocessing.set_sharing_strategy("file_system")
@@ -66,6 +63,13 @@ def main():
 
 
 def predict_masks(loader, predictor):
+
+    # create directory for saving the pseudomasks
+    pseudo_masks_path = config.DATASET_PATH_2D + split + '_2d_' + config.SAM_PROMPT + '_pseudomasks/'
+    histograms_path = config.SAM_OUTPUT_PATH + config.SAM_PROMPT + '_prompt/' + split + '_pseudomask_histograms/'
+    Path(pseudo_masks_path).mkdir(parents=True, exist_ok=True)
+    Path(histograms_path).mkdir(parents=True, exist_ok=True)
+
     dices = []
     with torch.no_grad():
         for step, item in enumerate(loader):
@@ -119,6 +123,29 @@ def predict_masks(loader, predictor):
                     background_point=True
                 )
 
+            #Predict using a box, then based on the box prediction choose a point per cluster
+            if config.SAM_PROMPT == 'box_and_then_point':
+                mask, input_boxes, input_points, input_labels = get_box_then_point_prompt_prediction(
+                    ground_truth_mask=ground_truth_mask,
+                    predictor=predictor,
+                    point_type='fg'
+                )
+            
+            #Predict using a box, then based on the box prediction choose a point per cluster
+            if config.SAM_PROMPT == 'box_and_then_background_point':
+                mask, input_boxes, input_points, input_labels = get_box_then_point_prompt_prediction(
+                    ground_truth_mask=ground_truth_mask,
+                    predictor=predictor,
+                    point_type='bg'
+                )
+
+            #Predict using a box, then based on the box prediction choose a foreground/background point per cluster
+            if config.SAM_PROMPT == 'box_and_then_fg/bg_point':
+                mask, input_boxes, input_points, input_labels = get_box_then_point_prompt_prediction(
+                    ground_truth_mask=ground_truth_mask,
+                    predictor=predictor,
+                    point_type='fg/bg'
+                )
 
             # needed for box prompt
             mask = np.squeeze(mask)
@@ -154,7 +181,8 @@ def predict_masks(loader, predictor):
         # draw a histogram of dice scores
         plt.hist([dice_info[1].item() for dice_info in dices], bins=20)
         plt.title(f'SAM: {config.ORGAN} pseudomask dice histogram, avg: {avg:.3f}')
-        plt.savefig(f'{histograms_path}{config.ORGAN}_pseudomask_dice_histogram.png')
+        noise = f'{"_noise" if config.USE_NOISE_FOR_BOX_PROMPT else ""}'; 
+        plt.savefig(f'{histograms_path}{config.ORGAN}{noise}_pseudomask_dice_histogram.png')
         plt.close()
 
 
@@ -162,5 +190,21 @@ def predict_masks(loader, predictor):
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--organ',
+                        default=config.ORGAN,
+                        choices=config.ORGAN_LIST,
+                        help = 'What organ to create labels for.'
+                        )
+    parser.add_argument('--prompt',
+                        default=config.SAM_PROMPT,
+                        choices=config.SAM_PROMPTS_LIST,
+                        help = 'What SAM prompt to use.'
+                        )
+    args = parser.parse_args()
+    
+    config.ORGAN = args.organ
+    config.SAM_PROMPT = args.prompt
+
     main()
 

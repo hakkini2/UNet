@@ -22,7 +22,7 @@ N_TRAIN_SAMPLES = 1000
 USE_PSEUDO_LABELS = True   # True/False
 
 # SAM prompt type
-SAM_PROMPTS_LIST = ['naive_point', 'point', 'furthest_from_edges_point', 'box', 'one_box_with_points', 'box_and_point', 'box_and_background_point']
+SAM_PROMPTS_LIST = ['naive_point', 'point', 'furthest_from_edges_point', 'box', 'one_box_with_points', 'box_and_point', 'box_and_background_point', 'box_and_then_point', 'box_and_then_background_point', 'box_and_then_fg_or_bg_point']
 SAM_PROMPT = SAM_PROMPTS_LIST[3]
 
 # IF using perturbation for box prompts

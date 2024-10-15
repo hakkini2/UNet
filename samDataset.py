@@ -179,12 +179,15 @@ def compute_center_of_mass(binary_mask):
 
 def compute_furthest_point_from_edges(binary_mask):
 	'''
-	Return a list of the furthest points from the foreground edges,
-	one for each cluster.
+	Return two lists: 
+	i) the furthest point from the foreground edges in the cluster, and 
+	ii) the size of the cluster in number of pixels,
+	where the size of the lists is the number of clusters.
 	'''
 
 	labeled_array, num_features = ndimage.label(binary_mask)
 	points_list = []
+	pixels_list = []
 
 	for label in range(1, num_features + 1):
 		# Extract each labeled object
@@ -193,10 +196,39 @@ def compute_furthest_point_from_edges(binary_mask):
 		distance_transform = distance_transform_edt(labeled_object)
 
 		furthest = np.unravel_index(np.argmax(distance_transform), distance_transform.shape)
+		num_pixels = np.count_nonzero(labeled_object)
 
 		points_list.append(furthest)
+		pixels_list.append(num_pixels)
 
-	return points_list
+	return points_list, pixels_list
+
+
+def compute_single_furthest_point_from_edges(binary_mask):
+	'''
+	Return the furthest point from the foreground edges, of the largest cluster.
+	'''
+
+	labeled_array, num_features = ndimage.label(binary_mask)
+
+	# Find cluster with largest area
+	n_pixels = []
+	labels = []
+	for label in range(1, num_features + 1):
+		# Extract each labeled object
+		labeled_object = np.where(labeled_array == label, 1, 0)
+		n_pixels.append(np.count_nonzero(labeled_object))
+		labels.append(label)
+
+	max_label = labels[np.argmax(n_pixels)]
+	
+	labeled_object = np.where(labeled_array == max_label, 1, 0)
+	distance_transform = distance_transform_edt(labeled_object)
+
+	assert np.count_nonzero(labeled_object) == np.amax(n_pixels)
+	furthest = np.unravel_index(np.argmax(distance_transform), distance_transform.shape)
+
+	return furthest, np.amax(n_pixels)
 
 
 
