@@ -39,14 +39,14 @@ SEED = 1984
 NUM_WORKERS = 4
 N_EPOCHS = 200
 ROI_SIZE = 384
-TRAIN_BATCH_SIZE = 64
+TRAIN_BATCH_SIZE = 32
 VAL_BATCH_SIZE = 64
 #LR = 1e-4
 LR = 1e-2
 BINARY_THRESHOLD = 0.5
 STEP_LR_SIZE = 50
 GAMMA_LR = 0.1
-ORGAN = "pancreas"
+ORGAN = "liver"
 INTENSITIES = {"lung": (-1024, 5324),
                "colon": (-1024, 13009),
                "spleen": (-1024, 3072),
@@ -213,13 +213,25 @@ model = UNet(
 ).to(device)
 
 '''
-
+'''
 model = UNet(
     spatial_dims=2,
     in_channels=1,
     out_channels=1,
     channels=(32, 64, 128, 256),
     strides=(2, 2, 2),
+    num_res_units=2,
+    dropout=0.1  # Added dropout to prevent overfitting
+).to(device)
+'''
+
+# The baseline architecture
+model = UNet(
+    spatial_dims=2,
+    in_channels=1,
+    out_channels=1,
+    channels=(32, 64, 128, 256, 512),
+    strides=(2, 2, 2, 2),
     num_res_units=2,
     dropout=0.1  # Added dropout to prevent overfitting
 ).to(device)
