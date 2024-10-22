@@ -10,4 +10,16 @@ if __name__ == "__main__":
         for prompt in prompts_list:
             assert prompt in list(cfg.prompts)
             print("Generating pseudo labels for ", organ, " with ", prompt)
-            subprocess.run(["python", "samTest.py", "--organ", organ, "--prompt", prompt, "--save_pseudo_labels"])
+            subprocess.run(
+                [
+                    "python",
+                    "samTest.py",
+                    "--organ",
+                    organ,
+                    "--prompt",
+                    prompt,
+                    "--split",
+                    "train",
+                    "--save_pseudo_labels",
+                ]
+            )
