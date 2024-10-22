@@ -1,11 +1,13 @@
-import config
 import subprocess
 
-if __name__ == '__main__':
+from omegaconf import OmegaConf
 
-    prompts_list = ['box_and_then_point', 'box_and_then_background_point', 'box_and_then_fgorbg_point']
-    for organ in config.ORGAN_LIST:
+if __name__ == "__main__":
+    cfg = OmegaConf.load("./configs/_base_config.yaml")
+
+    prompts_list = ["box_and_then_point", "box_and_then_background_point", "box_and_then_fg/bg_point"]
+    for organ in list(cfg.organs):
         for prompt in prompts_list:
-            assert prompt in config.SAM_PROMPTS_LIST
+            assert prompt in list(cfg.prompts)
             print("Generating pseudo labels for ", organ, " with ", prompt)
-            subprocess.run(["python", "sam-pseudo-labels.py", "--organ", organ, "--prompt", prompt]) 
+            subprocess.run(["python", "samTest.py", "--organ", organ, "--prompt", prompt, "--save_pseudo_labels"])
