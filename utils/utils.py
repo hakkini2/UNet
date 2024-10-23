@@ -1,10 +1,11 @@
+import sys
+
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
-import sys
-sys.path.append('..')
-import config
 
+sys.path.append("..")
+import config
 
 
 def calculate_dice_score(y_pred, y):
@@ -42,41 +43,48 @@ def calculate_dice_score(y_pred, y):
 
     return dice, sensitivity, specificity
 
+
 def show_mask(mask, ax, random_color=False):
     if random_color:
         color = np.concatenate([np.random.random(3), np.array([0.6])], axis=0)
     else:
-        color = np.array([30/255, 144/255, 255/255, 0.6])
+        color = np.array([30 / 255, 144 / 255, 255 / 255, 0.6])
     h, w = mask.shape[-2:]
     mask_image = mask.reshape(h, w, 1) * color.reshape(1, 1, -1)
     ax.imshow(mask_image)
-    
+
+
 def show_points(coords, labels, ax, marker_size=375):
-    pos_points = coords[labels==1]
-    neg_points = coords[labels==0]
-    ax.scatter(pos_points[:, 0], pos_points[:, 1], color='green', marker='*', s=marker_size, edgecolor='white', linewidth=1.25)
-    ax.scatter(neg_points[:, 0], neg_points[:, 1], color='red', marker='*', s=marker_size, edgecolor='white', linewidth=1.25)   
-    
+    pos_points = coords[labels == 1]
+    neg_points = coords[labels == 0]
+    ax.scatter(
+        pos_points[:, 0], pos_points[:, 1], color="green", marker="*", s=marker_size, edgecolor="white", linewidth=1.25
+    )
+    ax.scatter(
+        neg_points[:, 0], neg_points[:, 1], color="red", marker="*", s=marker_size, edgecolor="white", linewidth=1.25
+    )
+
+
 def show_box(box, ax):
     x0, y0 = box[0], box[1]
     w, h = box[2] - box[0], box[3] - box[1]
-    ax.add_patch(plt.Rectangle((x0, y0), w, h, edgecolor='green', facecolor=(0,0,0,0), lw=2))
+    ax.add_patch(plt.Rectangle((x0, y0), w, h, edgecolor="green", facecolor=(0, 0, 0, 0), lw=2))
 
 
 def show_anns(anns):
-    '''
+    """
     For visualizing SAM with everything mode
-    '''
+    """
     if len(anns) == 0:
         return
-    sorted_anns = sorted(anns, key=(lambda x: x['area']), reverse=True)
+    sorted_anns = sorted(anns, key=(lambda x: x["area"]), reverse=True)
     ax = plt.gca()
     ax.set_autoscale_on(False)
 
-    img = np.ones((sorted_anns[0]['segmentation'].shape[0], sorted_anns[0]['segmentation'].shape[1], 4))
-    img[:,:,3] = 0
+    img = np.ones((sorted_anns[0]["segmentation"].shape[0], sorted_anns[0]["segmentation"].shape[1], 4))
+    img[:, :, 3] = 0
     for ann in sorted_anns:
-        m = ann['segmentation']
+        m = ann["segmentation"]
         color_mask = np.concatenate([np.random.random(3), [0.35]])
         img[m] = color_mask
     ax.imshow(img)
@@ -88,15 +96,16 @@ def normalize8(I):
 
     mx -= mn
 
-    I = ((I - mn)/mx) * 255
+    I = ((I - mn) / mx) * 255
     return I.astype(np.uint8)
 
-def plotLoss(trainlosses, vallosses, fig_path, title='Loss'):
+
+def plotLoss(trainlosses, vallosses, fig_path, title="Loss"):
     # Plotting losses
     plt.figure(figsize=(10, 5))
     plt.title(title)
     plt.plot(trainlosses, label="Training loss")
-    plt.plot(vallosses, label='Validation loss')
+    plt.plot(vallosses, label="Validation loss")
     plt.xlabel("Batch")
     plt.ylabel("Loss")
     plt.legend()
@@ -105,9 +114,9 @@ def plotLoss(trainlosses, vallosses, fig_path, title='Loss'):
 
 
 def visualizeTransformedData3d(img, lbl, slice_id):
-    '''
+    """
     img and lbl should have only 3 channels, x,y,z
-    '''
+    """
     print(f"image shape: {img.shape}, label shape: {lbl.shape}")
 
     plt.figure("check", (12, 6))
@@ -117,78 +126,77 @@ def visualizeTransformedData3d(img, lbl, slice_id):
     plt.subplot(1, 2, 2)
     plt.title("label")
     plt.imshow(lbl[:, :, slice_id])
-    plt.savefig('output/plots/visualize_transformed_data.png')
+    plt.savefig("output/plots/visualize_transformed_data.png")
     plt.close()
 
 
 def visualizeSegmentation3d(img, lbl, name, predicted_label):
-    '''
+    """
     Visualises a slice of one of the 4 crops of one 3D input volume.
-    '''
+    """
     with torch.no_grad():
-
-        plt.figure(figsize=(12,4))
+        plt.figure(figsize=(12, 4))
         plt.suptitle(name[0], fontsize=14)
-        plt.subplot(1,3,1)
-        plt.imshow(img[0][0][:,:,60].to('cpu'), cmap='gray')
-        plt.axis('off')
-        plt.subplot(1,3,2)
-        plt.imshow(lbl[0][0][:,:,60].to('cpu'), cmap='copper')
-        plt.axis('off')
-        plt.subplot(1,3,3)
-        plt.imshow(predicted_label[:,:,60], cmap='copper')
-        plt.axis('off')
+        plt.subplot(1, 3, 1)
+        plt.imshow(img[0][0][:, :, 60].to("cpu"), cmap="gray")
+        plt.axis("off")
+        plt.subplot(1, 3, 2)
+        plt.imshow(lbl[0][0][:, :, 60].to("cpu"), cmap="copper")
+        plt.axis("off")
+        plt.subplot(1, 3, 3)
+        plt.imshow(predicted_label[:, :, 60], cmap="copper")
+        plt.axis("off")
         plt.tight_layout()
-        plt.savefig(f'{config.SAVED_PLOTS_PATH}/segmentation_result_{config.IMG_FORMAT}.png')
+        plt.savefig(f"{config.SAVED_PLOTS_PATH}/segmentation_result_{config.IMG_FORMAT}.png")
         plt.close()
 
 
 def visualizeSegmentation2d(img, lbl, name, predicted_label):
     with torch.no_grad():
-
-        plt.figure(figsize=(12,4))
-        plt.suptitle(f'{name[0]}', fontsize=14)
-        plt.subplot(1,3,1)
-        plt.imshow(img[0][0][:,:].to('cpu'), cmap='gray')
-        plt.axis('off')
-        plt.subplot(1,3,2)
-        plt.imshow(lbl[0][0][:,:].to('cpu'), cmap='copper')
-        plt.axis('off')
-        plt.subplot(1,3,3)
-        plt.imshow(predicted_label[0][0][:,:], cmap='copper')
-        plt.axis('off')
+        plt.figure(figsize=(12, 4))
+        plt.suptitle(f"{name[0]}", fontsize=14)
+        plt.subplot(1, 3, 1)
+        plt.imshow(img[0][0][:, :].to("cpu"), cmap="gray")
+        plt.axis("off")
+        plt.subplot(1, 3, 2)
+        plt.imshow(lbl[0][0][:, :].to("cpu"), cmap="copper")
+        plt.axis("off")
+        plt.subplot(1, 3, 3)
+        plt.imshow(predicted_label[0][0][:, :], cmap="copper")
+        plt.axis("off")
         plt.tight_layout()
-        plt.savefig(f'{config.SAVED_PLOTS_PATH}/segmentation_result_{config.IMG_FORMAT}.png')
+        plt.savefig(f"{config.SAVED_PLOTS_PATH}/segmentation_result_{config.IMG_FORMAT}.png")
         plt.close()
 
+
 def saveCheckpoint(state):
-    print('Saving model checkpoint..')
-    if config.IMG_FORMAT == '2d':
-        if config.TRAIN_DATA != 'all':
-            train_data = config.TRAIN_DATA.split('_')
-            train_data_text = f'{config.N_TRAIN_SAMPLES}_{train_data[1]}'
+    print("Saving model checkpoint..")
+    if config.IMG_FORMAT == "2d":
+        if config.TRAIN_DATA != "all":
+            train_data = config.TRAIN_DATA.split("_")
+            train_data_text = f"{config.N_TRAIN_SAMPLES}_{train_data[1]}"
         else:
             if config.USE_PSEUDO_LABELS:
-                train_data_text = f'{config.SAM_PROMPT}_pseudolabels'
+                train_data_text = f"{config.SAM_PROMPT}_pseudolabels"
             else:
-                train_data_text = f'{config.TRAIN_DATA}'
-        fname = f'unet_{config.ORGAN.lower()}_{train_data_text}_2D.pth'
-    if config.IMG_FORMAT == '3d':
-        fname = f'unet_{config.ORGAN.lower()}_3D.pth'
-    
+                train_data_text = f"{config.TRAIN_DATA}"
+        fname = f"unet_{config.ORGAN.lower()}_{train_data_text}_2D.pth"
+    if config.IMG_FORMAT == "3d":
+        fname = f"unet_{config.ORGAN.lower()}_3D.pth"
+
     torch.save(state, config.SAVED_MODEL_PATH + fname)
 
 
-def plot_dice_table(conf, all_dices, output_folder, mode='2D'):
-    '''
+def plot_dice_table(conf, all_dices, output_folder, mode="2D"):
+    """
     mode: ['2D', '3D'] - are we calcualting the dices from 2D slices or 3D avgs
-    
+
     NOTE: all_dices has a different structure depending on the mode:
             2D: {'organ': [('filename', metatensor(dice), ...], 'organ2': [...], ..}
             3D: { organ: {patient_id: avg_dice, ...}, ...}
-    '''
+    """
 
-    title = "Dice Scores by Organ (2D Slices)" if mode =='2D' else "Dice Scores by Organ (3D Volumes)"
+    title = "Dice Scores by Organ (2D Slices)" if mode == "2D" else "Dice Scores by Organ (3D Volumes)"
     fig_background_colour = "linen"
     fig_border_colour = "peru"
 
@@ -196,7 +204,7 @@ def plot_dice_table(conf, all_dices, output_folder, mode='2D'):
     data = [["Average", "Max", "Min"]]
 
     # fill in data
-    if mode == '2D':
+    if mode == "2D":
         for organ, dices in all_dices.items():
             dice_values = list(map(lambda dice: dice[1].item(), dices))
 
@@ -205,15 +213,15 @@ def plot_dice_table(conf, all_dices, output_folder, mode='2D'):
             maximum = max(dice_values)
 
             data.append([organ, avg, maximum, minimum])
-    else:   # 3D
+    else:  # 3D
         for organ, dices_by_patient in all_dices.items():
             dice_values = list(dices_by_patient.values())
 
             avg = sum(dice_values) / len(dice_values)
             minimum = min(dice_values)
-            maximum = max(dice_values) 
+            maximum = max(dice_values)
 
-            data.append([organ, avg, maximum, minimum])          
+            data.append([organ, avg, maximum, minimum])
 
     column_headers = data.pop(0)
     row_headers = [x.pop(0) for x in data]
@@ -253,7 +261,7 @@ def plot_dice_table(conf, all_dices, output_folder, mode='2D'):
     plt.draw()
     fig = plt.gcf()
     plt.savefig(
-        f'{output_folder}/{mode}_dice_score_table.png',
+        f"{output_folder}/{mode}_dice_score_table.png",
         # bbox='tight',
         edgecolor=fig.get_edgecolor(),
         facecolor=fig.get_facecolor(),

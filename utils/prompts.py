@@ -1,7 +1,6 @@
 import numpy as np
 
-import config
-from samDataset import (
+from dataset.sam_dataset import (
     compute_bounding_boxes,
     compute_boxes_and_background_points,
     compute_boxes_and_points,
@@ -83,12 +82,12 @@ def get_point_prompt_prediction(ground_truth_mask, predictor, point_type):
     return mask, input_points, input_labels
 
 
-def get_box_prompt_prediction(ground_truth_mask, predictor):
+def get_box_prompt_prediction(ground_truth_mask, predictor, noise=None):
     """
     Returns SAM's predicted mask using cluster box prompts.
     """
     # get a list of bounding boxes - one for each cluster
-    box_prompt_list = compute_bounding_boxes(ground_truth_mask, config.USE_NOISE_FOR_BOX_PROMPT)
+    box_prompt_list = compute_bounding_boxes(ground_truth_mask, noise=noise)
 
     # initialize mask array
     mask = np.full(ground_truth_mask.shape, False, dtype=bool)
@@ -188,12 +187,12 @@ def setminus(mask1, mask2):
     return mask1 & ~mask2
 
 
-def get_box_then_point_prompt_prediction(ground_truth_mask, predictor, point_type="fg"):
+def get_box_then_point_prompt_prediction(ground_truth_mask, predictor, point_type="fg", noise=None):
     """
     Returns SAM's predicted mask using cluster box prompts and potentially one interactive point.
     """
     # get a list of bounding boxes - one for each cluster
-    box_prompt_list = compute_bounding_boxes(ground_truth_mask, config.USE_NOISE_FOR_BOX_PROMPT)
+    box_prompt_list = compute_bounding_boxes(ground_truth_mask, noise=noise)
 
     # initialize mask array
     mask = np.full(ground_truth_mask.shape, False, dtype=bool)
