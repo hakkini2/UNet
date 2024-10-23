@@ -13,7 +13,7 @@ if __name__ == "__main__":
             subprocess.run(
                 [
                     "python",
-                    "samTest.py",
+                    "sam_eval.py",
                     "--organ",
                     organ,
                     "--prompt",
