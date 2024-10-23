@@ -32,8 +32,8 @@ def process_image(item, img_out_dir, mask_out_dir):
             mask_slice = mask[:, :, i]
 
             # Define the output paths
-            img_slice_path = img_out_dir / f"{img_path.stem}_{i}.nii.gz"
-            mask_slice_path = mask_out_dir / f"{lbl_path.stem}_{i}.nii.gz"
+            img_slice_path = img_out_dir / f"{img_path.stem[:-4]}_{i}.nii.gz"
+            mask_slice_path = mask_out_dir / f"{lbl_path.stem[:-4]}_{i}.nii.gz"
 
             # Save the slices as NIfTI files
             sitk.WriteImage(img_slice, img_slice_path)
