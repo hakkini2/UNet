@@ -29,14 +29,14 @@ def main(**kwargs):
     # Create dataset and dataloader
     image_files_train = sorted(
         [
-            Path(cfg.data_2d_path, "train_2d_images", f).as_posix()
+            Path(f).as_posix()
             for f in Path(cfg.data_2d_path, "train_2d_images").iterdir()
             if f.is_file() and f.stem.startswith(organ)
         ]
     )
     label_files_train = sorted(
         [
-            Path(cfg.data_2d_path, "train_2d_masks", f).as_posix()
+            Path(f).as_posix()
             for f in Path(cfg.data_2d_path, "train_2d_masks").iterdir()
             if f.is_file() and f.stem.startswith(organ)
         ]
@@ -44,14 +44,14 @@ def main(**kwargs):
 
     image_files_val = sorted(
         [
-            Path(cfg.data_2d_path, "val_2d_images", f).as_posix()
+            Path(f).as_posix()
             for f in Path(cfg.data_2d_path, "val_2d_images").iterdir()
             if f.is_file() and f.stem.startswith(organ)
         ]
     )
     label_files_val = sorted(
         [
-            Path(cfg.data_2d_path, "val_2d_masks", f).as_posix()
+            Path(f).as_posix()
             for f in Path(cfg.data_2d_path, "val_2d_masks").iterdir()
             if f.is_file() and f.stem.startswith(organ)
         ]
